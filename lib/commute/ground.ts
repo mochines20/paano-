@@ -4,7 +4,7 @@ import {
   findRoutesTo,
   estimateRouteKm,
 } from "@/lib/commute/gtfs";
-import { estimateFareBand, FARE_SOURCE } from "@/lib/commute/fares";
+import { estimateFareBand, estimateFareBandForModes, FARE_SOURCE } from "@/lib/commute/fares";
 import type { PaanoAnswer } from "@/lib/answers";
 
 /**
@@ -130,7 +130,7 @@ export async function groundCommuteQuestion(
       parts.push(`estimated distance: ~${km} km`);
       if (fareBand) {
         parts.push(
-          `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max} (jeepney ₱17 + ₱2.30/km, ordinary bus ₱15 + ₱2.49/km)`,
+          `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max} (trad jeepney ₱14 + ₱2.00/km, modern jeepney ₱17 + ₱2.40/km, ordinary bus ₱15 + ₱2.49/km)`,
         );
       }
     }
@@ -162,10 +162,16 @@ export function applyCommuteGrounding(
   if (g.routes.length > 0 && next.route_names.length === 0) {
     next = { ...next, route_names: g.routes };
   }
-  if (g.fareBand) {
+  // Fare band batay sa MGA MODE na sinabi ng modelo (hal. jeepney lang →
+  // ₱14–₱17 base; bus lang → ₱15–₱18 base) — mas precise kaysa lahat-ng-mode.
+  const fareBand =
+    g.km !== null
+      ? estimateFareBandForModes(g.km, next.modes) ?? g.fareBand
+      : g.fareBand;
+  if (fareBand) {
     next = {
       ...next,
-      fare_range: { min: g.fareBand.min, max: g.fareBand.max, currency: "PHP" },
+      fare_range: { min: fareBand.min, max: fareBand.max, currency: "PHP" },
       fare_notes: next.fare_notes
         ? `${next.fare_notes} · Tinantiya mula sa ${FARE_SOURCE}`
         : `Tinantiya mula sa ${FARE_SOURCE}`,

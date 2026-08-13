@@ -133,10 +133,15 @@ function asString(v: unknown): string | null {
 
 function asStringArray(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
-  return v
-    .map((x) => asString(x))
-    .filter((x): x is string => x !== null)
-    .slice(0, 30);
+  // Dedupe — para hindi magkaroon ng duplicate keys sa UI (hal. dalawang
+  // "bus" sa modes na inilabas ng modelo).
+  return [
+    ...new Set(
+      v
+        .map((x) => asString(x))
+        .filter((x): x is string => x !== null),
+    ),
+  ].slice(0, 30);
 }
 
 function asNumber(v: unknown): number | null {

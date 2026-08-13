@@ -72,13 +72,28 @@ export const DOC_GUIDES: DocGuide[] = [
     ],
     fees: [
       {
-        item: "PSA Certificate (birth/marriage/death)",
+        item: "PSA Certificate (birth/marriage/death) — SECPA delivery",
         amount: "₱365 per copy (kasama na ang processing + delivery)",
+        updated: "2026-08",
+      },
+      {
+        item: "PSA E-Certificate (digital copy)",
+        amount: "₱290 — pinakamabilis; nangangailangan ng identity verification",
+        updated: "2026-08",
+      },
+      {
+        item: "PSA SECPA pickup",
+        amount: "₱335 (pickup sa National Book Store / Robinsons branches)",
+        updated: "2026-08",
+      },
+      {
+        item: "CENOMAR / CENODEATH",
+        amount: "₱420 per copy",
         updated: "2026-08",
       },
     ],
     processing_time:
-      "Metro Manila: kadalasang next-day pagkatapos i-release ng PSA; provincial: mas matagal",
+      "Metro Manila: kadalasang next-day pagkatapos i-release ng PSA; provincial: 3–8 working days",
     official_link: {
       label: "PSA Helpline (opisyal)",
       url: "https://psahelpline.ph",
@@ -88,6 +103,7 @@ export const DOC_GUIDES: DocGuide[] = [
     alerts: [
       "Posting period: ang bagong-registered birth/marriage ay kailangang ma-post muna bago ma-request online — humigit-kumulang 2–4 na buwan kung sa Metro Manila naregister, hindi bababa sa 6 na buwan kung sa probinsya (batay sa transmittal date sa PSA).",
       "May mga pekeng/klon na PSA site — pumunta lang sa psahelpline.ph at hanapin ang 'official PSA authorized' na wording.",
+      "Pwedeng magtalaga ng ibang tao para tumanggap ng delivery sa pamamagitan ng online Letter of Authorization (LOA).",
     ],
     lastVerified: "2026-08-13",
   },
@@ -248,7 +264,7 @@ export const DOC_GUIDES: DocGuide[] = [
     title: "PhilSys National ID",
     agency: "PSA / PhilSys",
     summary:
-      "Walk-in na ang proseso simula 2026 — wala nang online pre-registration. Pumunta sa anumang PhilSys Registration Center dala ang PSA birth certificate; libre ang lahat.",
+      "Walk-in na ang proseso — isinara ng PSA ang online Step 1 pre-registration portal noong 2023. Pumunta sa anumang PhilSys Registration Center dala ang PSA birth certificate; libre ang lahat.",
     keywords: [
       "national id",
       "national i.d",
@@ -262,24 +278,24 @@ export const DOC_GUIDES: DocGuide[] = [
       "id system",
     ],
     steps: [
-      "Diretso sa anumang PhilSys Registration Center (PSA offices, mall booths, barangay centers, o mobile 'ID on Wheels'/'ID on Boat' para sa remote areas) — walk-in na ang proseso.",
-      "Dalhin ang PSA birth certificate (o ibang primary document) at secondary ID kung kailangan.",
-      "I-capture ang biometrics sa parehong visit: fingerprints, iris scan, at photo.",
-      "Kunin ang transaction slip — accessible agad ang digital ID sa eGovPH app habang naka-deliver ang physical card via PHLPost.",
+      "Diretso sa anumang PhilSys Registration Center (PSA offices, mall booths, barangay centers, o mobile 'National ID on Wheels'/'on Boat' para sa remote areas) — walk-in na ang proseso, first-come first-served.",
+      "Dalhin ang supporting documents — isang primary document lang ang sapat (PSA birth certificate, passport, driver's license, o UMID); secondary ID kung kailangan.",
+      "I-validate ang demographic data at i-capture ang biometrics sa parehong visit: fingerprints, iris scan, at front-facing photo.",
+      "Kunin ang transaction slip na may Transaction Reference Number (TRN) — ito ang gamit sa pag-track ng delivery at sa ePhilID (digital copy).",
     ],
     requirements: [
-      "PSA birth certificate (o ibang primary document)",
-      "Secondary ID kung kailangan",
+      "Isang primary document (hal. PSA birth certificate, passport, driver's license, UMID)",
+      "Secondary document kung kailangan",
     ],
     fees: [
       { item: "First registration", amount: "Libre — walang lehitimong bayad", updated: "2026-08" },
     ],
-    processing_time: "Transaction slip kaagad; digital ID agad sa eGovPH app; physical card via PHLPost (weeks)",
+    processing_time: "TRN slip sa parehong araw; ePhilID/digital copy — mas mabilis; physical card via PHLPost (weeks)",
     official_link: { label: "PhilSys", url: "https://philsys.gov.ph" },
     prerequisites: ["psa-certificate"],
     usedAsIdFor: [],
     alerts: [
-      "Maraming online guides ang outdated — wala nang online pre-registration simula 2026; walk-in na ang proseso.",
+      "Maraming online guides ang outdated — ang online Step 1 pre-registration portal (register.philsys.gov.ph) ay isinara noong 2023; walk-in na ang proseso. Kung may site na humihingi ng online appointment para sa bagong registration, malamang na luma ang info na iyon.",
       "Libre ang first registration — huwag magbayad sa sinumang maniningil.",
     ],
     lastVerified: "2026-08-13",

@@ -122,6 +122,7 @@ async function buildIndex(): Promise<GtfsIndex | null> {
 const PLACE_ALIASES: Record<string, string[]> = {
   intramuros: ["padre burgos", "manila city hall", "arroceros"],
   quiapo: ["quezon blvd", "plaza miranda"],
+  divisoria: ["recto", "tutuban"],
   ayala: ["ayala avenue", "ayala mrt", "ayala lrt"],
   bgc: ["bonifacio global city", "global city", "fort bonifacio"],
   moa: ["mall of asia", "seaside"],
@@ -268,8 +269,9 @@ export function estimateRouteKm(
 
   const straight = haversineKm(origin.lat, origin.lon, dest.lat, dest.lon);
   if (!Number.isFinite(straight) || straight <= 0) return null;
-  // Detour factor 1.35: bihirang straight line ang byahe sa Metro Manila.
-  return Math.max(1, Math.round(straight * 1.35 * 10) / 10);
+  // Detour factor 1.2: tantiya lang ito. Na-calibrate laban sa halimbawa ng
+  // LTFRB chairman (Cubao→Divisoria ≈ ₱26 modern jeepney ≈ 7.7km).
+  return Math.max(1, Math.round(straight * 1.2 * 10) / 10);
 }
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {

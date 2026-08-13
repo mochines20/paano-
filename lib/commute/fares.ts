@@ -1,14 +1,23 @@
 /**
  * LTFRB fare formulas — configurable constants, HINDI hardcoded na sagot.
  *
- * Batay sa LTFRB fare matrix, epektibo Marso 19, 2026:
- *   - Modern jeepney: ₱17 minimum (unang 1km) + ₱2.30 kada kasunod na km
- *   - Ordinary bus:   ₱15 minimum (unang 5km) + ₱2.49 kada kasunod na km
+ * Batay sa LTFRB fare matrix na epektibo Marso 19, 2026 (provisional,
+ * naging permanente noong Hunyo 2026). Na-verify laban sa GMA News,
+ * Rappler, Philstar, at SPOT.ph coverage:
+ *
+ *   - Traditional jeepney: ₱14 minimum (unang 4km) + ₱2.00/km
+ *   - Modern jeepney:      ₱17 minimum (unang 4km) + ₱2.40/km
+ *   - City bus (ordinary): ₱15 minimum (unang 5km) + ₱2.49/km
+ *   - City bus (aircon):   ₱18 minimum (unang 5km) + ₱2.98/km
+ *   - Provincial bus:      ₱12 minimum + ₱2.20/km (matrix — i-verify)
+ *   - Airport taxi:        ₱115 flagdown (unang 500m)
+ *   - TNVS:                ₱65 sedan / ₱75 AUV / ₱55 hatchback / ₱165 premium
+ *
  * Source: ltfrb.gov.ph — maaaring magbago; laging i-verify bago sumakay.
  */
 
 export const FARE_SOURCE =
-  "LTFRB fare matrix (epektibo Marso 19, 2026) — ltfrb.gov.ph. Maaaring magbago.";
+  "LTFRB fare matrix (epektibo Marso 19, 2026, permanente noong Hunyo) — ltfrb.gov.ph. Maaaring magbago.";
 
 export const FARE_EFFECTIVE_DATE = "2026-03-19";
 
@@ -24,45 +33,71 @@ export interface FareRule {
 export const FARE_RULES: FareRule[] = [
   {
     mode: "jeepney",
+    label: "Traditional jeepney",
+    base: 14,
+    baseKm: 4,
+    perKm: 2.0,
+  },
+  {
+    mode: "jeepney",
     label: "Modern jeepney",
     base: 17,
-    baseKm: 1,
-    perKm: 2.3,
-    note: "Traditional jeepneys: ₱13–₱15 minimum depende sa LGU",
+    baseKm: 4,
+    perKm: 2.4,
+    note: "Minibus — air-conditioned",
   },
   {
     mode: "bus",
-    label: "Ordinary bus",
+    label: "City bus (ordinary)",
     base: 15,
     baseKm: 5,
     perKm: 2.49,
   },
+  {
+    mode: "bus",
+    label: "City bus (aircon)",
+    base: 18,
+    baseKm: 5,
+    perKm: 2.98,
+  },
+  {
+    mode: "bus",
+    label: "Provincial bus (ordinary)",
+    base: 12,
+    baseKm: 5,
+    perKm: 2.2,
+    note: "Provincial matrix — i-verify sa operator",
+  },
 ];
-
-export function fareRuleFor(mode: string): FareRule | undefined {
-  return FARE_RULES.find((r) => r.mode === mode);
-}
 
 /**
  * Estimated fare gamit ang LTFRB formula: base + perKm × (km − baseKm).
- * Bumalik ang rounded peso value, o null kung walang alam na formula
- * para sa mode na iyon.
+ * Bumalik ang rounded peso value.
  */
-export function estimateFare(mode: string, km: number): number | null {
-  const rule = fareRuleFor(mode);
-  if (!rule) return null;
+export function estimateFare(rule: FareRule, km: number): number {
   if (km <= rule.baseKm) return Math.round(rule.base);
   return Math.round(rule.base + rule.perKm * (km - rule.baseKm));
 }
 
-/** Band ng fare para sa parehong jeepney at bus (depende sa mode ng sasakyan). */
-export function estimateFareBand(km: number): {
-  min: number;
-  max: number;
-} | null {
-  const jeepney = estimateFare("jeepney", km);
-  const bus = estimateFare("bus", km);
-  if (jeepney === null && bus === null) return null;
-  const values = [jeepney, bus].filter((v): v is number => v !== null);
+/**
+ * Band ng fare para sa mga mode na sinabi ng modelo (hal. may "jeepney"
+ * at "bus" sa modes → kasama ang traditional+modern jeepney at
+ * ordinary+aircon bus). Pag walang modes, lahat ng rule ang gagamitin.
+ */
+export function estimateFareBandForModes(
+  km: number,
+  modes: string[],
+): { min: number; max: number } | null {
+  const known = new Set(modes);
+  const rules = FARE_RULES.filter((r) => known.has(r.mode));
+  const applicable = rules.length > 0 ? rules : FARE_RULES;
+
+  const values = applicable.map((r) => estimateFare(r, km));
+  if (values.length === 0) return null;
   return { min: Math.min(...values), max: Math.max(...values) };
+}
+
+/** Band ng fare para sa parehong jeepney at bus (compatibility helper). */
+export function estimateFareBand(km: number): { min: number; max: number } | null {
+  return estimateFareBandForModes(km, ["jeepney", "bus"]);
 }
