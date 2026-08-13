@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { AnswerCard } from "@/components/AnswerCard";
+import { BotAvatar } from "@/components/BotAvatar";
 import {
   IconCommute,
   IconCooking,
@@ -219,8 +220,8 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
         {messages.length === 0 && (
           <div className="mx-auto max-w-2xl space-y-6 pt-4">
             <div className="text-center">
-              <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-2xl font-black text-orange-400 shadow-lg shadow-orange-500/10">
-                P
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 shadow-lg shadow-orange-500/10">
+                <BotAvatar size={44} showPulse className="rounded-2xl" />
               </div>
               <h2 className="text-xl font-black text-white">
                 Ano ang gagawin mo ngayon?
@@ -314,9 +315,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
             ) : (
               <div key={m.id} className="animate-fade-up space-y-2">
                 <div className="flex items-start gap-2.5">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-500/15 text-xs font-bold text-orange-400">
-                    P
-                  </span>
+                  <BotAvatar size={28} className="shrink-0" />
                   <div className="flex-1 space-y-2">
                     {m.answer && <AnswerCard answer={m.answer} />}
                     {m.error && (
@@ -356,9 +355,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
 
           {loading && (
             <div className="animate-fade-up flex items-start gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-500/15 text-xs font-bold text-orange-400">
-                P
-              </span>
+              <BotAvatar size={28} className="shrink-0" />
               <div className="flex-1 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 shadow-md">
                 <div className="skeleton mb-3 h-4 w-24 rounded-full" />
                 <div className="skeleton mb-2 h-5 w-2/3 rounded-md" />
