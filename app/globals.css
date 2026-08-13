@@ -5,11 +5,47 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #09090b; /* zinc-950 */
-  --foreground: #f4f4f5; /* zinc-100 */
-  /* Easing curves — mas natural ang galaw kaysa linear/ease */
+  /* Surface palette — mas malalim at mas malinis kaysa raw zinc */
+  --background: #050507;
+  --foreground: #fafafa;
+  --surface: #0d0d10;
+  --surface-raised: #141419;
+  --surface-elevated: #1c1c23;
+  --border: #27272e;
+  --border-strong: #3f3f46;
+  --muted: #a1a1aa;
+
+  /* Brand — mas controlled na orange */
+  --accent: #f97316;
+  --accent-bright: #fb923c;
+  --accent-dim: #ea580c;
+  --accent-glow: rgba(249, 115, 22, 0.18);
+
+  /* Easing — natural na galaw */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+
+  /* Shadows — soft, dark-aware */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 32px var(--accent-glow);
 }
 
 @theme inline {
@@ -29,27 +65,34 @@ body {
 /* Selection + custom scrollbar (dark-first, may orange accent)        */
 /* ------------------------------------------------------------------ */
 ::selection {
-  background: rgba(249, 115, 22, 0.32);
+  background: rgba(249, 115, 22, 0.28);
   color: #fff;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(63, 63, 70, 0.6) transparent;
+  scrollbar-color: rgba(70, 70, 78, 0.5) transparent;
 }
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(63, 63, 70, 0.6);
+  background: rgba(70, 70, 78, 0.5);
   border-radius: 9999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(82, 82, 91, 0.9);
+  background: rgba(100, 100, 110, 0.75);
+}
+
+/* ------------------------------------------------------------------ */
+/* Typography helpers                                                  */
+/* ------------------------------------------------------------------ */
+.text-balance {
+  text-wrap: balance;
 }
 
 /* ------------------------------------------------------------------ */
@@ -59,7 +102,18 @@ body {
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -81,7 +135,7 @@ body {
 @keyframes pop {
   0% {
     opacity: 0;
-    transform: scale(0.94);
+    transform: scale(0.92);
   }
   100% {
     opacity: 1;
@@ -149,7 +203,10 @@ body {
 }
 
 .animate-fade-up {
-  animation: fade-up 0.4s var(--ease-out-soft) both;
+  animation: fade-up 0.45s var(--ease-out-soft) both;
+}
+.animate-slide-up {
+  animation: slide-up 0.5s var(--ease-out-soft) both;
 }
 .animate-slide-down {
   animation: slide-down 0.3s var(--ease-spring) both;
@@ -171,9 +228,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.05) 25%,
-    rgba(255, 255, 255, 0.14) 50%,
-    rgba(255, 255, 255, 0.05) 75%
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 75%
   );
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
@@ -206,24 +263,39 @@ body {
 .hero-mesh {
   background-image:
     radial-gradient(
-      60% 50% at 50% 0%,
-      rgba(249, 115, 22, 0.16),
+      70% 55% at 50% -10%,
+      rgba(249, 115, 22, 0.18),
       transparent 70%
     ),
     radial-gradient(
-      40% 40% at 80% 10%,
+      50% 40% at 85% 10%,
       rgba(251, 146, 60, 0.08),
       transparent 70%
     ),
     radial-gradient(
-      40% 40% at 20% 10%,
-      rgba(244, 114, 182, 0.05),
+      50% 40% at 15% 10%,
+      rgba(244, 114, 182, 0.06),
       transparent 70%
     );
 }
 
+/* Glass card — raised, subtle border + shadow */
+.glass-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+}
+
+/* Focus ring na consistent sa buong app */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
+  .animate-slide-up,
   .animate-slide-down,
   .animate-pop,
   .animate-pulse-dot,

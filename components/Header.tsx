@@ -9,11 +9,11 @@ export function Header() {
   const onPaano = pathname.startsWith("/paano");
 
   return (
-    <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
+    <header className="sticky top-0 z-10 border-b border-zinc-900/80 bg-[#050507]/85 backdrop-blur">
       <nav className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
         <Link
           href="/"
-          className="flex items-center gap-1 text-xl font-black tracking-tight text-zinc-50 transition-opacity hover:opacity-90 active:scale-95"
+          className="flex items-center gap-1 text-xl font-black tracking-tight text-white transition-opacity hover:opacity-90 active:scale-95"
         >
           PAANO
           <span className="animate-pulse-dot text-orange-500">.</span>
@@ -21,10 +21,10 @@ export function Header() {
         <Link
           href="/paano"
           aria-current={onPaano ? "page" : undefined}
-          className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-150 active:scale-95 ${
+          className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-150 active:scale-95 focus-ring ${
             onPaano
               ? "bg-orange-500 text-zinc-950 hover:bg-orange-400"
-              : "bg-zinc-100 text-zinc-900 hover:bg-zinc-300"
+              : "bg-zinc-800 text-zinc-100 hover:bg-zinc-700"
           }`}
         >
           Itanong

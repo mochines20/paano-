@@ -32,12 +32,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="fil"
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-zinc-950 text-zinc-100">
+      <body className="flex min-h-full flex-col bg-[#050507] text-zinc-100">
         <PwaRegister />
         <Header />
         {children}
-        <footer className="mt-auto border-t border-zinc-800 py-6 text-center text-sm leading-relaxed text-zinc-400/90">
+        <footer className="mt-auto border-t border-zinc-900 py-6 text-center text-[13px] leading-relaxed text-zinc-500">
           PAANO — hindi opisyal na source ng gobyerno o medikal na payo.
+          <br />
           I-verify sa opisyal na ahensya bago kumilos.
         </footer>
       </body>

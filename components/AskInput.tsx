@@ -23,7 +23,7 @@ export function AskInput({ compact = false }: { compact?: boolean }) {
   return (
     <form
       onSubmit={onSubmit}
-      className={`group flex w-full items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 p-1.5 shadow-lg shadow-black/20 backdrop-blur transition-all duration-200 focus-within:border-orange-500 focus-within:shadow-orange-500/20 ${compact ? "" : "pl-5"}`}
+      className={`group flex w-full items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 p-1.5 shadow-md shadow-black/30 backdrop-blur transition-all duration-200 focus-within:border-orange-500/60 focus-within:ring-1 focus-within:ring-orange-500/20 ${compact ? "" : "pl-5"}`}
       role="search"
     >
       <span className="pl-1 text-zinc-500 transition-colors duration-200 group-focus-within:text-orange-400" aria-hidden>
@@ -50,7 +50,7 @@ export function AskInput({ compact = false }: { compact?: boolean }) {
       <button
         type="submit"
         disabled={!value.trim()}
-        className="shrink-0 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-zinc-950 transition-all duration-150 hover:bg-orange-400 active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:opacity-40"
+        className="shrink-0 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-zinc-950 shadow-md shadow-orange-500/20 transition-all duration-150 hover:bg-orange-400 active:scale-95 focus-ring disabled:opacity-40"
       >
         Itanong
       </button>
