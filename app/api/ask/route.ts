@@ -3,7 +3,12 @@ import { askPaano, llmConfigError, llmConfigured } from "@/lib/llm";
 import { fallbackAnswer } from "@/lib/answers";
 import type { ChatMessage } from "@/lib/answers";
 import { logQuestion } from "@/lib/logging";
-import { applyCommuteGrounding, groundCommuteQuestion } from "@/lib/commute/ground";
+import {
+  applyCommuteGrounding,
+  groundCommuteQuestion,
+  isCommuteQuestion,
+} from "@/lib/commute/ground";
+import { docGuideToAnswer, findDocGuide } from "@/lib/docs/service";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -53,28 +58,50 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!llmConfigured()) {
-    return NextResponse.json(
-      { error: llmConfigError() },
-      { status: 503 },
-    );
-  }
-
   try {
+    const lastUserIndex = [...messages].reverse().findIndex((m) => m.role === "user");
+    const lastUser =
+      lastUserIndex !== -1 ? messages[messages.length - 1 - lastUserIndex] : undefined;
+
+    // Static docs guide (human-reviewed) — walang LLM call, zero cost.
+    // Commute muna ang may priority para hindi ma-flag na docs ang
+    // "papuntang PSA office".
+    if (lastUser && !isCommuteQuestion(lastUser.content)) {
+      const docGuide = findDocGuide(lastUser.content);
+      if (docGuide) {
+        const answer = docGuideToAnswer(docGuide);
+        await logQuestion({
+          question: lastUser.content,
+          category: "docs",
+          confidence: answer.confidence,
+          client_ip: clientIp,
+          repaired: false,
+          raw: null,
+        });
+        return NextResponse.json({ answer });
+      }
+    }
+
+    // LLM na ang kailangan dito (docs guides ay static at libre — hindi
+    // umaasa sa API key).
+    if (!llmConfigured()) {
+      return NextResponse.json(
+        { error: llmConfigError() },
+        { status: 503 },
+      );
+    }
+
     // Commute grounding: kung commute ang tanong, i-append ang GTFS routes
     // + LTFRB fare data sa huling user message (hindi puro haka ang sagot).
-    const lastUserIndex = [...messages].reverse().findIndex((m) => m.role === "user");
     let groundedMessages = messages;
     let grounding = null;
-    if (lastUserIndex !== -1) {
-      const idx = messages.length - 1 - lastUserIndex;
-      const lastUser = messages[idx];
+    if (lastUser) {
       grounding = await groundCommuteQuestion(lastUser.content);
       if (grounding) {
         groundedMessages = [
-          ...messages.slice(0, idx),
+          ...messages.slice(0, messages.length - 1 - lastUserIndex),
           { ...lastUser, content: `${lastUser.content}\n\n${grounding.context}` },
-          ...messages.slice(idx + 1),
+          ...messages.slice(messages.length - lastUserIndex),
         ];
       }
     }

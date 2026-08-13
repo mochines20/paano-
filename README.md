@@ -55,6 +55,8 @@ lib/
   commute/fares.ts    LTFRB fare formulas (configurable constants, cited)
   commute/gtfs.ts     GTFS reader + stop/route lookup (data/gtfs/)
   commute/ground.ts   Commute grounding: GTFS routes + fare → LLM context
+  docs/data.ts        Human-reviewed doc guides (PSA, LTO, DFA, NBI, PhilSys)
+  docs/service.ts     Doc matching + DocGuide → structured answer
   supabase.ts         Supabase client (graceful kung walang config)
   logging.ts          Per-IP question logging (best-effort)
 scripts/
@@ -81,6 +83,26 @@ supabase/schema.sql   Tables para sa question logs (+ future feedback/routes)
   LTFRB fare estimate sa user message bago tawagin ang LLM, at ino-override ang
   `fare_range`/`route_names` ng sagot gamit ang datos — laging may citation at
   "i-verify bago sumakay" note. Kung walang data/gtfs, pure-LLM ang sagot.
+
+## Docs guides (human-reviewed, static)
+
+Static guides para sa: PSA Certificate (birth/marriage/death/CENOMAR), LTO
+Student Permit, LTO Non-Professional License, DFA Passport, NBI Clearance,
+PhilSys National ID. Huling na-verify: 2026-08-13.
+
+- **Walang LLM call** — ang mga docs questions na tugma sa `lib/docs/data.ts`
+  ay sinasagot ng static card (libre at mabilis); ang LLM ay para lang sa
+  docs questions na wala sa listahan.
+- **Dependency graph** — bawat doc ay may `prerequisites` (doc ids), para
+  masabi ng PAANO ang "kailangan mo munang makuha ito" (hal. PSA Birth Cert
+  → Student Permit → Non-Pro License; PSA → Passport/NBI/PhilSys).
+- **Proactive alerts** — mga bagay na madalas makaligtaan ng ibang guides:
+  PSA posting period (2–4 buwan Metro Manila / 6+ buwan probinsya), PhilSys
+  walk-in na simula 2026 (wala nang online pre-reg), libre ang National ID,
+  RA 11261 free NBI para sa first-time job seekers (hiwalay na portal), atbp.
+- **Review schedule** — i-refresh ang fees/requirements nang manu-mano (lalo
+  na ang NBI at LTO fees na nagbabago) at i-update ang `lastVerified`. Huwag
+  hayaan ang LLM na gumawa ng fees/requirements para sa mga ito.
 
 ## Scripts
 

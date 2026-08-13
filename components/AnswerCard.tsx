@@ -287,6 +287,33 @@ function FirstAidSection({ spec }: { spec: Extract<PaanoAnswer["category_specifi
 function DocsSection({ spec }: { spec: Extract<PaanoAnswer["category_specific"], { category: "docs" }> }) {
   return (
     <>
+      {spec.prerequisites.length > 0 && (
+        <div className="mb-3 rounded-xl bg-indigo-50 p-3 dark:bg-indigo-900/20">
+          <h4 className="mb-1.5 text-xs font-bold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+            Kailangan mo munang makuha
+          </h4>
+          <ul className="space-y-1 text-sm text-zinc-800 dark:text-zinc-200">
+            {spec.prerequisites.map((p, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-indigo-600" />
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {spec.alerts.length > 0 && (
+        <div className="mb-3 space-y-2">
+          {spec.alerts.map((a, i) => (
+            <p
+              key={i}
+              className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:bg-amber-900/20 dark:text-amber-200"
+            >
+              {a}
+            </p>
+          ))}
+        </div>
+      )}
       <SectionTitle>Requirements</SectionTitle>
       <ul className="space-y-1 text-sm text-zinc-800 dark:text-zinc-200">
         {spec.requirements.map((r, i) => (

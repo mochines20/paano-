@@ -84,6 +84,8 @@ export interface DocsSpecific {
   fees: { item: string; amount: string; updated: string | null }[];
   processing_time: string | null;
   last_verified: string;
+  prerequisites: string[];
+  alerts: string[];
 }
 
 export interface GenericSpecific {
@@ -289,6 +291,8 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
           : [],
         processing_time: asString(src.processing_time),
         last_verified: asString(src.last_verified) ?? "hindi pa nabe-verify",
+        prerequisites: asStringArray(src.prerequisites),
+        alerts: asStringArray(src.alerts),
       };
       break;
     case "generic":
