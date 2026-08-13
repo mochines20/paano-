@@ -24,7 +24,7 @@ export function StickyAsk() {
   if (!visible) return null;
 
   return (
-    <div className="animate-slide-down fixed inset-x-0 top-[53px] z-20 border-b border-zinc-900/80 bg-[#050507]/90 px-4 py-2.5 backdrop-blur">
+    <div className="animate-slide-down fixed inset-x-0 top-[49px] z-20 border-b border-zinc-900/80 bg-[#050507]/90 px-3 py-2 backdrop-blur sm:top-[57px] sm:px-4 sm:py-2.5">
       <div className="mx-auto max-w-3xl">
         <AskInput compact />
       </div>

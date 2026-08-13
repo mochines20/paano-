@@ -105,19 +105,19 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
   return (
     <article className={`animate-fade-up overflow-hidden rounded-2xl border bg-zinc-900/70 shadow-md backdrop-blur ${meta.border}`}>
       <div aria-hidden className={`h-1 w-full bg-gradient-to-r ${meta.bar}`} />
-      <div className="p-4">
-        <header className="mb-3 flex items-start justify-between gap-3">
+      <div className="p-3.5 sm:p-4">
+        <header className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0 flex-1">
             <span
               className={`mb-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ${meta.badge}`}
             >
               {meta.label}
             </span>
-            <h3 className="text-balance text-lg font-bold leading-snug text-white">
+            <h3 className="text-balance text-base font-bold leading-snug text-white sm:text-lg">
               {answer.title}
             </h3>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <div className="flex shrink-0 flex-row items-center gap-1.5 sm:flex-col sm:items-end">
             <ConfidenceBadge confidence={answer.confidence} />
             <button
               onClick={() => void copyAnswer()}
@@ -310,11 +310,11 @@ function ConfidenceBadge({ confidence }: { confidence: PaanoAnswer["confidence"]
 
 function StepsList({ steps }: { steps: string[] }) {
   return (
-    <ol className="mt-4 space-y-2 border-t border-zinc-800 pt-4">
+    <ol className="mt-3 space-y-2 border-t border-zinc-800 pt-3 sm:mt-4 sm:pt-4">
       {steps.map((step, i) => (
         <li
           key={i}
-          className="animate-fade-up flex gap-2.5 text-sm leading-relaxed text-zinc-200"
+          className="animate-fade-up flex gap-2 text-sm leading-relaxed text-zinc-200 sm:gap-2.5"
           style={{ animationDelay: `${i * 60}ms` }}
         >
           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-bold text-white transition-transform duration-150 hover:scale-110">
@@ -337,7 +337,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function CommuteSection({ spec, tint }: { spec: Extract<PaanoAnswer["category_specific"], { category: "commute" }>; tint: string }) {
   return (
-    <div className={`rounded-xl border p-3 ${tint} ${CATEGORY_META.commute.border}`}>
+    <div className={`rounded-xl border p-2.5 sm:p-3 ${tint} ${CATEGORY_META.commute.border}`}>
       <div className="mb-2 flex flex-wrap gap-1.5">
         {spec.modes.map((m) => (
           <span
@@ -354,13 +354,13 @@ function CommuteSection({ spec, tint }: { spec: Extract<PaanoAnswer["category_sp
         </p>
       )}
       <dl className="grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-xl bg-zinc-950/50 p-2.5">
+        <div className="rounded-xl bg-zinc-950/50 p-2">
           <dt className="text-[10px] font-semibold uppercase text-zinc-500">Byahe</dt>
           <dd className="font-bold text-zinc-100">
             ~{spec.time_range.min}–{spec.time_range.max} min
           </dd>
         </div>
-        <div className="rounded-xl bg-zinc-950/50 p-2.5">
+        <div className="rounded-xl bg-zinc-950/50 p-2">
           <dt className="text-[10px] font-semibold uppercase text-zinc-500">Pamasahe</dt>
           <dd className="font-bold text-zinc-100">
             {spec.fare_range.min === spec.fare_range.max
@@ -380,7 +380,7 @@ function CookingSection({ spec, tint, border }: { spec: Extract<PaanoAnswer["cat
   return (
     <>
       <SectionTitle>Sangkap {spec.servings && <span className="normal-case">· para sa {spec.servings}</span>}</SectionTitle>
-      <ul className={`space-y-1.5 rounded-xl border p-3 text-sm text-zinc-200 ${tint} ${border}`}>
+      <ul className={`space-y-1.5 rounded-xl border p-2.5 text-sm text-zinc-200 sm:p-3 ${tint} ${border}`}>
         {spec.ingredients.map((ing, i) => (
           <li key={i} className="flex justify-between gap-3 border-b border-dashed border-zinc-700/60 pb-1.5 last:border-0 last:pb-0">
             <span>{ing.item}</span>
@@ -407,9 +407,9 @@ function CookingSection({ spec, tint, border }: { spec: Extract<PaanoAnswer["cat
 
 function DiySection({ spec, tint }: { spec: Extract<PaanoAnswer["category_specific"], { category: "diy" }>; tint: string }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
       {spec.tools.length > 0 && (
-        <div className={`rounded-xl border p-3 ${tint} ${CATEGORY_META.diy.border}`}>
+        <div className={`rounded-xl border p-2.5 sm:p-3 ${tint} ${CATEGORY_META.diy.border}`}>
           <SectionTitle>Mga Kailangan (Tools)</SectionTitle>
           <ul className="space-y-1 text-sm text-zinc-200">
             {spec.tools.map((t, i) => (
@@ -422,7 +422,7 @@ function DiySection({ spec, tint }: { spec: Extract<PaanoAnswer["category_specif
         </div>
       )}
       {spec.materials.length > 0 && (
-        <div className={`rounded-xl border p-3 ${tint} ${CATEGORY_META.diy.border}`}>
+        <div className={`rounded-xl border p-2.5 sm:p-3 ${tint} ${CATEGORY_META.diy.border}`}>
           <SectionTitle>Materials</SectionTitle>
           <ul className="space-y-1 text-sm text-zinc-200">
             {spec.materials.map((m, i) => (
@@ -445,8 +445,8 @@ function DiySection({ spec, tint }: { spec: Extract<PaanoAnswer["category_specif
 
 function FirstAidSection({ spec, tint }: { spec: Extract<PaanoAnswer["category_specific"], { category: "first_aid" }>; tint: string }) {
   return (
-    <div className={`rounded-xl border p-3 ${tint} ${CATEGORY_META.first_aid.border}`}>
-      <div className="grid gap-3 sm:grid-cols-2">
+    <div className={`rounded-xl border p-2.5 sm:p-3 ${tint} ${CATEGORY_META.first_aid.border}`}>
+      <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
         {spec.do_list.length > 0 && (
           <div>
             <h4 className="mb-1 text-xs font-bold uppercase text-rose-300">Gawin</h4>
@@ -487,7 +487,7 @@ function DocsSection({ spec, tint }: { spec: Extract<PaanoAnswer["category_speci
   return (
     <>
       {spec.prerequisites.length > 0 && (
-        <div className={`mb-3 rounded-xl border p-3 ${tint} ${CATEGORY_META.docs.border}`}>
+        <div className={`mb-3 rounded-xl border p-2.5 sm:p-3 ${tint} ${CATEGORY_META.docs.border}`}>
           <h4 className="mb-1.5 text-xs font-bold uppercase tracking-wide text-indigo-300">
             Kailangan mo munang makuha
           </h4>
