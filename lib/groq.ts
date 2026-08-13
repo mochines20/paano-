@@ -24,23 +24,37 @@ async function complete(
   systemInstruction: string,
   temperature: number,
 ): Promise<string> {
-  const res = await fetch(`${GROQ_BASE}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      temperature,
-      max_tokens: 3000,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: systemInstruction },
-        ...messages.map((m) => ({ role: m.role, content: m.content })),
-      ],
-    }),
-  });
+  const call = () =>
+    fetch(`${GROQ_BASE}/chat/completions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        temperature,
+        max_tokens: 2048,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemInstruction },
+          // Ang internal ChatMessage role ay "model" (Gemini convention);
+          // kailangan ng Groq ang "assistant".
+          ...messages.map((m) => ({
+            role: m.role === "model" ? "assistant" : "user",
+            content: m.content,
+          })),
+        ],
+      }),
+    });
+
+  let res = await call();
+
+  // Free tier TPM rate limit (429) — isang retry na may backoff.
+  if (res.status === 429) {
+    await new Promise((r) => setTimeout(r, 2000));
+    res = await call();
+  }
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");

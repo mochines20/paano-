@@ -359,6 +359,45 @@ export function wrapRawText(raw: string): PaanoAnswer {
   };
 }
 
+/**
+ * I-serialize ang answer bilang text para sa chat history — para maalala
+ * ng modelo ang mga naunang sagot sa follow-up questions. Ito ang pumupuno
+ * sa dating bug kung saan nawawala ang assistant answers sa context.
+ */
+export function answerToText(a: PaanoAnswer): string {
+  const lines: string[] = [
+    `[Sagot ng PAANO — ${a.category}] ${a.title}. ${a.summary}`,
+  ];
+  const spec = a.category_specific;
+  if (spec?.category === "commute") {
+    lines.push(
+      `Byahe: ~${spec.time_range.min}–${spec.time_range.max} min. ` +
+        `Pamasahe: ₱${spec.fare_range.min}–₱${spec.fare_range.max}.`,
+    );
+    if (spec.route_names.length > 0) {
+      lines.push(`Ruta: ${spec.route_names.join(", ")}.`);
+    }
+    if (spec.fare_notes) lines.push(`Tandaan sa pamasahe: ${spec.fare_notes}`);
+  }
+  if (spec?.category === "docs") {
+    if (spec.prerequisites.length > 0) {
+      lines.push(`Prerequisite: ${spec.prerequisites.join(", ")}.`);
+    }
+    if (spec.alerts.length > 0) lines.push(`Alerts: ${spec.alerts.join(" ")}`);
+    if (spec.fees.length > 0) {
+      lines.push(`Bayarin: ${spec.fees.map((f) => `${f.item} — ${f.amount}`).join("; ")}.`);
+    }
+  }
+  if (a.steps.length > 0) {
+    lines.push("Steps: " + a.steps.map((s, i) => `${i + 1}. ${s}`).join(" "));
+  }
+  if (a.disclaimer) lines.push(`Disclaimer: ${a.disclaimer}`);
+  if (a.official_link) {
+    lines.push(`Opisyal na source: ${a.official_link.label} (${a.official_link.url})`);
+  }
+  return lines.join("\n");
+}
+
 /** Fallback answer nang walang tawag sa modelo (para sa hard errors). */
 export function fallbackAnswer(message: string): PaanoAnswer {
   return {

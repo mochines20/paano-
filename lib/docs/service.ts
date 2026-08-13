@@ -28,6 +28,31 @@ export function findDocGuide(question: string): DocGuide | null {
   return best?.guide ?? null;
 }
 
+/** Paano magtanong tungkol sa bawat doc (para sa follow-up chips). */
+const DOC_ASK: Record<string, string> = {
+  "psa-certificate": "Paano kumuha ng PSA birth certificate?",
+  "lto-student-permit": "Paano kumuha ng student permit?",
+  "lto-nonpro-license": "Paano kumuha ng driver's license?",
+  passport: "Paano kumuha ng passport?",
+  "nbi-clearance": "Paano kumuha ng NBI clearance?",
+  "philsys-national-id": "Paano kumuha ng National ID?",
+};
+
+/**
+ * Follow-up questions mula sa dependency graph — prerequisites at
+ * usedAsIdFor, para makita ng user ang "kailangan mo munang makuha ito"
+ * at ang "ano pa ang kayang i-validate nito".
+ */
+export function suggestedDocQuestions(guide: DocGuide): string[] {
+  const ids = [...guide.prerequisites, ...guide.usedAsIdFor];
+  const questions = [...new Set(ids)]
+    .map((id) => DOC_ASK[id])
+    .filter((q): q is string => Boolean(q))
+    .slice(0, 3);
+  if (questions.length < 2) questions.push("Ano ang susunod na kailangan kong makuha?");
+  return questions;
+}
+
 /** I-convert ang DocGuide papunta sa structured PaanoAnswer para sa card. */
 export function docGuideToAnswer(guide: DocGuide): PaanoAnswer {
   return {

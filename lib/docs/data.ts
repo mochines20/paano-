@@ -84,7 +84,7 @@ export const DOC_GUIDES: DocGuide[] = [
       url: "https://psahelpline.ph",
     },
     prerequisites: [],
-    usedAsIdFor: ["Passport", "NBI Clearance (backup ID)", "LTO Student Permit", "National ID (PhilSys)"],
+    usedAsIdFor: ["passport", "nbi-clearance", "lto-student-permit", "philsys-national-id"],
     alerts: [
       "Posting period: ang bagong-registered birth/marriage ay kailangang ma-post muna bago ma-request online — humigit-kumulang 2–4 na buwan kung sa Metro Manila naregister, hindi bababa sa 6 na buwan kung sa probinsya (batay sa transmittal date sa PSA).",
       "May mga pekeng/klon na PSA site — pumunta lang sa psahelpline.ph at hanapin ang 'official PSA authorized' na wording.",
@@ -127,7 +127,7 @@ export const DOC_GUIDES: DocGuide[] = [
     processing_time: "Sa araw ng appointment (exam + encoding + biometrics)",
     official_link: { label: "LTO LTMS Portal", url: "https://portal.lto.gov.ph" },
     prerequisites: ["psa-certificate"],
-    usedAsIdFor: ["Passport", "NBI Clearance", "PhilSys"],
+    usedAsIdFor: ["passport", "nbi-clearance", "philsys-national-id"],
     alerts: [
       "Ang mga fee na makikita online ay nag-iiba-iba depende sa source/year — ituring na 'as of 2026' at i-verify sa LTO mismo.",
     ],

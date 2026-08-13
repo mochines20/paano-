@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { answerToText } from "@/lib/answers";
 import type { PaanoAnswer } from "@/lib/answers";
 
 /**
@@ -39,10 +41,21 @@ const CONFIDENCE_LABEL: Record<PaanoAnswer["confidence"], string> = {
 export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
   const meta = CATEGORY_META[answer.category];
   const spec = answer.category_specific;
+  const [copied, setCopied] = useState(false);
+
+  async function copyAnswer() {
+    try {
+      await navigator.clipboard.writeText(answerToText(answer));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* hindi available ang clipboard — huwag mag-crash */
+    }
+  }
 
   return (
     <article
-      className={`rounded-2xl border bg-white p-4 shadow-sm ${meta.accent} dark:bg-zinc-900`}
+      className={`rounded-2xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md ${meta.accent} dark:bg-zinc-900`}
     >
       <header className="mb-2 flex items-start justify-between gap-2">
         <div>
@@ -55,7 +68,17 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
             {answer.title}
           </h3>
         </div>
-        <ConfidenceBadge confidence={answer.confidence} />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <ConfidenceBadge confidence={answer.confidence} />
+          <button
+            onClick={() => void copyAnswer()}
+            title="Kopyahin ang sagot"
+            aria-label="Kopyahin ang sagot"
+            className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+          >
+            {copied ? "Kopyado!" : "Kopyahin"}
+          </button>
+        </div>
       </header>
 
       {answer.summary && (

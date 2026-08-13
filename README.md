@@ -39,16 +39,18 @@ Stack: Next.js (App Router) + Tailwind CSS v4 + Gemini (`@google/genai`) **o** G
 app/
   page.tsx            Landing page (dark, isang CTA: ask input)
   paano/page.tsx      Chat page (kumukuha ng ?q= para i-auto-ask)
-  api/ask/route.ts    POST — LLM + commute grounding + structured parse + logging
+  api/ask/route.ts    Thin HTTP layer: validation + logging + error mapping
 components/
   AskInput.tsx        Ang nag-iisang CTA (hero + sticky)
   StickyAsk.tsx       Persistent ask bar kapag naka-scroll na
-  Chat.tsx            Client chat UI (history, loading, suggestions)
+  Chat.tsx            Client chat UI (multi-turn, follow-up chips, retry)
   AnswerCard.tsx      Structured answer card, ibang layout per category
   icons.tsx           Line icons ng feature cards
 lib/
+  pipeline.ts         Business logic: docs-static → commute grounding → LLM
+                      → suggestions. Ito ang puso ng /api/ask.
   prompts/system-prompt.ts   PAANO Taglish system prompt (fallback/disclaimer rules)
-  answers.ts          Answer types + JSON parse/validate/repair
+  answers.ts          Answer types + JSON parse/validate/repair + answerToText
   llm.ts              Provider dispatcher (LLM_PROVIDER env)
   gemini.ts           Gemini provider (JSON mode, retry, graceful fallback)
   groq.ts             Groq provider (OpenAI-compatible, json_object mode)
@@ -56,7 +58,7 @@ lib/
   commute/gtfs.ts     GTFS reader + stop/route lookup (data/gtfs/)
   commute/ground.ts   Commute grounding: GTFS routes + fare → LLM context
   docs/data.ts        Human-reviewed doc guides (PSA, LTO, DFA, NBI, PhilSys)
-  docs/service.ts     Doc matching + DocGuide → structured answer
+  docs/service.ts     Doc matching + DocGuide → structured answer + follow-ups
   supabase.ts         Supabase client (graceful kung walang config)
   logging.ts          Per-IP question logging (best-effort)
 scripts/
