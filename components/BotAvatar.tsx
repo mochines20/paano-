@@ -8,8 +8,8 @@ interface BotAvatarProps {
 
 /**
  * Avatar ng PAANO bot.
- * Inaasahan ang file: /public/bot-avatar.jpg
- * Kung wala pa ang file, magbabackup sa "P" lettermark.
+ * Default: /public/bot-avatar.svg (pixelated AI bot).
+ * Kung gusto mo ibang image, palitan lang ang src.
  */
 export function BotAvatar({
   size = 28,
@@ -28,14 +28,13 @@ export function BotAvatar({
         />
       )}
       <Image
-        src="/bot-avatar.jpg"
+        src="/bot-avatar.svg"
         alt="PAANO bot"
         width={size}
         height={size}
         unoptimized
         className="h-full w-full object-cover"
         onError={(e) => {
-          // Fallback: palitan ng lettermark kapag walang image
           const target = e.currentTarget;
           target.style.display = "none";
           const parent = target.parentElement;

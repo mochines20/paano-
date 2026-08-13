@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges">
+  <defs>
+    <style>
+      .bg { fill: #0d0d10; }
+      .skin { fill: #27272e; }
+      .accent { fill: #f97316; }
+      .light { fill: #fb923c; }
+      .dim { fill: #9a3412; }
+      .eye { fill: #f97316; }
+      .glint { fill: #ffffff; }
+      .line { fill: #3f3f46; }
+    </style>
+  </defs>
+
+  <!-- Background square -->
+  <rect class="bg" width="64" height="64" />
+
+  <!-- Pixelated bot head, centered 14-50 -->
+  <!-- Antenna -->
+  <rect class="line" x="30" y="4" width="4" height="8" />
+  <rect class="accent" x="28" y="2" width="8" height="6" />
+
+  <!-- Head base -->
+  <rect class="skin" x="12" y="14" width="40" height="36" rx="0" ry="0" />
+
+  <!-- Top accent band -->
+  <rect class="accent" x="12" y="14" width="40" height="6" />
+  <rect class="light" x="14" y="16" width="4" height="2" />
+  <rect class="light" x="24" y="16" width="4" height="2" />
+
+  <!-- Side bolts/ears -->
+  <rect class="line" x="6" y="22" width="6" height="10" />
+  <rect class="line" x="52" y="22" width="6" height="10" />
+  <rect class="accent" x="4" y="24" width="4" height="6" />
+  <rect class="accent" x="56" y="24" width="4" height="6" />
+
+  <!-- Visor/screen area -->
+  <rect class="bg" x="18" y="24" width="28" height="16" />
+
+  <!-- Eyes -->
+  <rect class="eye" x="22" y="28" width="6" height="6" />
+  <rect class="eye" x="36" y="28" width="6" height="6" />
+
+  <!-- Eye glint -->
+  <rect class="glint" x="24" y="29" width="2" height="2" />
+  <rect class="glint" x="38" y="29" width="2" height="2" />
+
+  <!-- Mouth -->
+  <rect class="line" x="28" y="46" width="8" height="2" />
+
+  <!-- Chin / neck accents -->
+  <rect class="accent" x="22" y="52" width="20" height="4" />
+  <rect class="dim" x="26" y="56" width="12" height="2" />
+</svg>
