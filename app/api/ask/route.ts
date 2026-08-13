@@ -3,6 +3,7 @@ import { askPaano, llmConfigError, llmConfigured } from "@/lib/llm";
 import { fallbackAnswer } from "@/lib/answers";
 import type { ChatMessage } from "@/lib/answers";
 import { logQuestion } from "@/lib/logging";
+import { applyCommuteGrounding, groundCommuteQuestion } from "@/lib/commute/ground";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -60,19 +61,40 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await askPaano(messages);
+    // Commute grounding: kung commute ang tanong, i-append ang GTFS routes
+    // + LTFRB fare data sa huling user message (hindi puro haka ang sagot).
+    const lastUserIndex = [...messages].reverse().findIndex((m) => m.role === "user");
+    let groundedMessages = messages;
+    let grounding = null;
+    if (lastUserIndex !== -1) {
+      const idx = messages.length - 1 - lastUserIndex;
+      const lastUser = messages[idx];
+      grounding = await groundCommuteQuestion(lastUser.content);
+      if (grounding) {
+        groundedMessages = [
+          ...messages.slice(0, idx),
+          { ...lastUser, content: `${lastUser.content}\n\n${grounding.context}` },
+          ...messages.slice(idx + 1),
+        ];
+      }
+    }
+
+    const result = await askPaano(groundedMessages);
+    const answer = grounding
+      ? applyCommuteGrounding(result.answer, grounding)
+      : result.answer;
     const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
 
     await logQuestion({
       question: lastUserMsg?.content ?? "(walang user message)",
-      category: result.answer.category,
-      confidence: result.answer.confidence,
+      category: answer.category,
+      confidence: answer.confidence,
       client_ip: clientIp,
       repaired: result.repaired,
       raw: result.raw,
     });
 
-    return NextResponse.json({ answer: result.answer });
+    return NextResponse.json({ answer });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "May nangyaring mali. Subukan muli.";

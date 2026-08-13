@@ -56,6 +56,7 @@ export interface CommuteSpecific {
   origin: string;
   destination: string;
   modes: string[];
+  route_names: string[];
   time_range: TimeRange;
   fare_range: FareRange;
   fare_notes: string | null;
@@ -236,6 +237,7 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
         origin: asString(src.origin) ?? "?",
         destination: asString(src.destination) ?? "?",
         modes: asStringArray(src.modes),
+        route_names: asStringArray(src.route_names),
         time_range: {
           min: asNumber(tr.min) ?? 0,
           max: asNumber(tr.max) ?? 0,

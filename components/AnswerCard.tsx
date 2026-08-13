@@ -149,6 +149,11 @@ function CommuteSection({ spec }: { spec: Extract<PaanoAnswer["category_specific
           </span>
         ))}
       </div>
+      {spec.route_names.length > 0 && (
+        <p className="mb-2 text-xs font-medium text-zinc-700 dark:text-zinc-300">
+          Sakay: {spec.route_names.join(" · ")}
+        </p>
+      )}
       <dl className="grid grid-cols-2 gap-2 text-sm">
         <div className="rounded-lg bg-white p-2 dark:bg-zinc-900">
           <dt className="text-[10px] font-semibold uppercase text-zinc-500">Byahe</dt>
@@ -159,7 +164,9 @@ function CommuteSection({ spec }: { spec: Extract<PaanoAnswer["category_specific
         <div className="rounded-lg bg-white p-2 dark:bg-zinc-900">
           <dt className="text-[10px] font-semibold uppercase text-zinc-500">Pamasahe</dt>
           <dd className="font-bold text-zinc-900 dark:text-zinc-100">
-            ₱{spec.fare_range.min}–₱{spec.fare_range.max}
+            {spec.fare_range.min === spec.fare_range.max
+              ? `₱${spec.fare_range.min}`
+              : `₱${spec.fare_range.min}–₱${spec.fare_range.max}`}
           </dd>
         </div>
       </dl>

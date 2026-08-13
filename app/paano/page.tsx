@@ -6,10 +6,17 @@ export const metadata: Metadata = {
   description: "Tanong sa Taglish — commute, lutong bahay, gawa-bahay, first aid, o docs.",
 };
 
-export default function PaanoPage() {
+export default async function PaanoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const initialQuestion = typeof q === "string" && q.trim() ? q.trim() : undefined;
+
   return (
     <main className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col">
-      <Chat />
+      <Chat initialQuestion={initialQuestion} />
     </main>
   );
 }

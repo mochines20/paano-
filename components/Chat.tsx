@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { AnswerCard } from "@/components/AnswerCard";
 import type { PaanoAnswer } from "@/lib/answers";
@@ -23,11 +23,21 @@ const SUGGESTIONS = [
 
 let nextId = 1;
 
-export function Chat() {
+export function Chat({ initialQuestion }: { initialQuestion?: string }) {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoSentRef = useRef(false);
+
+  // Galing sa landing page (?q=...): i-prefill at auto-send ng isang beses.
+  useEffect(() => {
+    if (initialQuestion && !autoSentRef.current) {
+      autoSentRef.current = true;
+      void send(initialQuestion);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuestion]);
 
   const scrollToBottom = () => {
     requestAnimationFrame(() => {

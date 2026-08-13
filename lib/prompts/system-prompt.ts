@@ -49,6 +49,7 @@ SCHEMA NG OUTPUT (lahat ng fields ay dapat present; gamitin ang tamang category)
       "origin": "saan nagsisimula",
       "destination": "saan pupunta",
       "modes": ["jeepney", "bus", "lrt", "mrt", "tricycle", "uv", "ferry", "walk"],
+      "route_names": ["pangalan ng jeep/bus route, hal. 'Cubao - Quiapo via Aurora Blvd'"],
       "time_range": { "min": 30, "max": 45, "unit": "min" },
       "fare_range": { "min": 12, "max": 35, "currency": "PHP" },
       "fare_notes": "hal. 'may student discount sa LRT' o null"
