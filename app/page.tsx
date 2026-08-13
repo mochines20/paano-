@@ -54,24 +54,40 @@ export default function Home() {
 
       {/* Hero + trust pills — ang nag-iisang CTA */}
       <section className="mx-auto max-w-3xl px-4 pb-8 pt-10 text-center sm:pt-14">
-        <span className="mb-3 inline-block rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-orange-400 ring-1 ring-zinc-800">
+        <span
+          className="animate-fade-up mb-3 inline-block rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-orange-400 ring-1 ring-zinc-800"
+          style={{ animationDelay: "0ms" }}
+        >
           Taglish · Hyper-local · Praktikal
         </span>
-        <h1 className="text-3xl font-black leading-tight tracking-tight text-zinc-50 sm:text-5xl">
+        <h1
+          className="animate-fade-up text-3xl font-black leading-tight tracking-tight text-zinc-50 sm:text-5xl"
+          style={{ animationDelay: "60ms" }}
+        >
           Ang praktikal na <span className="text-orange-500">“paano”</span>
           <br className="hidden sm:block" /> para sa buhay sa Pilipinas.
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
+        <p
+          className="animate-fade-up mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base"
+          style={{ animationDelay: "120ms" }}
+        >
           Commute, lutong bahay, gawa-bahay — sagot na parang tita o kuya na
           ginawa na ito: Taglish, step-by-step, at kung hindi sigurado,
           ituturo ka sa opisyal na source.
         </p>
 
-        <div id="hero-ask" className="mx-auto mt-6 max-w-xl">
+        <div
+          id="hero-ask"
+          className="animate-fade-up mx-auto mt-6 max-w-xl"
+          style={{ animationDelay: "180ms" }}
+        >
           <AskInput />
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+        <div
+          className="animate-fade-up mt-3 flex flex-wrap items-center justify-center gap-2"
+          style={{ animationDelay: "240ms" }}
+        >
           {TRUST_PILLS.map((pill) => (
             <span
               key={pill}
@@ -87,10 +103,11 @@ export default function Home() {
       {/* Feature cards — pare-parehong laki, 5-col desktop / 1-col mobile */}
       <section className="mx-auto max-w-3xl px-4 pb-12">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
-          {FEATURES.map((f) => (
+          {FEATURES.map((f, i) => (
             <article
               key={f.key}
-              className="flex flex-col gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 transition-colors hover:border-orange-500/50"
+              className="animate-fade-up flex flex-col gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-orange-500/60 hover:shadow-lg hover:shadow-orange-500/5"
+              style={{ animationDelay: `${280 + i * 70}ms` }}
             >
               <f.icon className="h-6 w-6 text-orange-500" />
               <h2 className="text-sm font-bold text-zinc-100">{f.title}</h2>

@@ -37,17 +37,40 @@ create policy "Allow insert for question logging"
   with check (true);
 
 -- ==================================================================
--- Sprint 4 (future): community corrections
+-- Community verification layer (feature #7) — thumbs + corrections
 -- ==================================================================
--- create table if not exists public.answer_feedback (
---   id bigint generated always as identity primary key,
---   question_id bigint references public.question_logs (id) on delete set null,
---   helpful boolean,
---   correction text,
---   status text not null default 'pending',  -- pending | approved | rejected
---   created_at timestamptz not null default now()
--- );
---
+create table if not exists public.answer_feedback (
+  id bigint generated always as identity primary key,
+  answer_hash text not null,
+  helpful boolean,
+  correction text,
+  client_ip text,
+  status text not null default 'pending',  -- pending | approved | rejected (manual review)
+  created_at timestamptz not null default now()
+);
+
+create index if not exists answer_feedback_hash_idx
+  on public.answer_feedback (answer_hash);
+
+create index if not exists answer_feedback_status_idx
+  on public.answer_feedback (status);
+
+alter table public.answer_feedback enable row level security;
+
+create policy "Allow insert for community feedback"
+  on public.answer_feedback for insert
+  to anon
+  with check (true);
+
+-- Read access para sa correction counts (GET /api/feedback?hash=...):
+create policy "Allow select correction counts"
+  on public.answer_feedback for select
+  to anon
+  using (true);
+
+-- ==================================================================
+-- Sprint 4 (future): community-verified commute routes
+-- ==================================================================
 -- ==================================================================
 -- Sprint 4 (future): community-verified commute routes
 -- ==================================================================

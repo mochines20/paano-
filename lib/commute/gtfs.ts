@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 /**
@@ -23,6 +23,8 @@ export interface GtfsRoute {
   agencyId: string;
   type: number;
   displayName: string;
+  /** "metro" o pangalan ng siyudad (data/gtfs/provincial/<city>). */
+  feedId: string;
 }
 
 export interface GtfsStop {
@@ -52,62 +54,104 @@ export function resetGtfsCache(): void {
   cached = undefined;
 }
 
-async function buildIndex(): Promise<GtfsIndex | null> {
-  const [routesRaw, stopsRaw, tripsRaw, stopTimesRaw] = await Promise.all([
-    readFile(path.join(GTFS_DIR, "routes.txt"), "utf8"),
-    readFile(path.join(GTFS_DIR, "stops.txt"), "utf8"),
-    readFile(path.join(GTFS_DIR, "trips.txt"), "utf8"),
-    readFile(path.join(GTFS_DIR, "stop_times.txt"), "utf8"),
-  ]).catch(() => [null, null, null, null]);
+interface FeedSpec {
+  id: string;
+  dir: string;
+}
 
-  if (!routesRaw || !stopsRaw || !tripsRaw || !stopTimesRaw) return null;
-
-  const routes = parseCsv(routesRaw).map((row) => {
-    const routeId = row.route_id ?? "";
-    const longName = row.route_long_name ?? "";
-    const shortName = row.route_short_name ?? "";
-    return {
-      routeId,
-      shortName,
-      longName,
-      agencyId: row.agency_id ?? "",
-      type: Number(row.route_type) || 3,
-      // Iwasan ang duplicate kapag ang longName ay naglalaman na ng shortName
-      // (kadalasan sa LTFRB: short="Cubao - Quiapo via Aurora", long="...desc...").
-      displayName:
-        longName && shortName && longName.toLowerCase().includes(shortName.toLowerCase())
-          ? shortName
-          : [shortName, longName].filter(Boolean).join(" — "),
-    };
-  });
-
-  const stops = parseCsv(stopsRaw).map((row) => ({
-    stopId: row.stop_id ?? "",
-    name: row.stop_name ?? "",
-    lat: Number(row.stop_lat) || 0,
-    lon: Number(row.stop_lon) || 0,
-  }));
-
-  // tripId → routeId
-  const tripRoutes = new Map<string, string>();
-  for (const row of parseCsv(tripsRaw)) {
-    if (row.trip_id) tripRoutes.set(row.trip_id, row.route_id ?? "");
-  }
-
-  // stopId → Set(routeId)
-  const stopToRoutes = new Map<string, Set<string>>();
-  for (const row of parseCsv(stopTimesRaw)) {
-    if (!row.stop_id || !row.trip_id) continue;
-    const routeId = tripRoutes.get(row.trip_id);
-    if (!routeId) continue;
-    let set = stopToRoutes.get(row.stop_id);
-    if (!set) {
-      set = new Set();
-      stopToRoutes.set(row.stop_id, set);
+/** data/gtfs/ = Metro Manila; data/gtfs/provincial/<city>/ = karagdagang
+ * mga siyudad (i-drop lang ang GTFS files — auto-detect). */
+async function listFeeds(): Promise<FeedSpec[]> {
+  const feeds: FeedSpec[] = [{ id: "metro", dir: GTFS_DIR }];
+  try {
+    const provincialDir = path.join(GTFS_DIR, "provincial");
+    const entries = await readdir(provincialDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        feeds.push({ id: entry.name, dir: path.join(provincialDir, entry.name) });
+      }
     }
-    set.add(routeId);
+  } catch {
+    /* walang provincial dir */
+  }
+  return feeds;
+}
+
+async function buildIndex(): Promise<GtfsIndex | null> {
+  const feeds = await listFeeds();
+
+  const routes: GtfsRoute[] = [];
+  const stops: GtfsStop[] = [];
+  const stopToRoutes = new Map<string, Set<string>>();
+  let anyLoaded = false;
+
+  for (const feed of feeds) {
+    const [routesRaw, stopsRaw, tripsRaw, stopTimesRaw] = await Promise.all([
+      readFile(path.join(feed.dir, "routes.txt"), "utf8"),
+      readFile(path.join(feed.dir, "stops.txt"), "utf8"),
+      readFile(path.join(feed.dir, "trips.txt"), "utf8"),
+      readFile(path.join(feed.dir, "stop_times.txt"), "utf8"),
+    ]).catch(() => [null, null, null, null]);
+
+    // Ang metro feed ang required; ang provincial ay optional (skip kung sira).
+    if (!routesRaw || !stopsRaw || !tripsRaw || !stopTimesRaw) {
+      if (feed.id === "metro") return null;
+      continue;
+    }
+    anyLoaded = true;
+
+    const prefix = `${feed.id}:`;
+    const feedRoutes = parseCsv(routesRaw).map((row) => {
+      const routeId = prefix + (row.route_id ?? "");
+      const longName = row.route_long_name ?? "";
+      const shortName = row.route_short_name ?? "";
+      return {
+        routeId,
+        shortName,
+        longName,
+        agencyId: row.agency_id ?? "",
+        type: Number(row.route_type) || 3,
+        // Iwasan ang duplicate kapag ang longName ay naglalaman na ng shortName
+        // (kadalasan sa LTFRB: short="Cubao - Quiapo via Aurora", long="...desc...").
+        displayName:
+          longName && shortName && longName.toLowerCase().includes(shortName.toLowerCase())
+            ? shortName
+            : [shortName, longName].filter(Boolean).join(" — "),
+        feedId: feed.id,
+      };
+    });
+    routes.push(...feedRoutes);
+
+    const feedStops = parseCsv(stopsRaw).map((row) => ({
+      stopId: prefix + (row.stop_id ?? ""),
+      name: row.stop_name ?? "",
+      lat: Number(row.stop_lat) || 0,
+      lon: Number(row.stop_lon) || 0,
+    }));
+    stops.push(...feedStops);
+
+    // tripId → routeId (prefixed)
+    const tripRoutes = new Map<string, string>();
+    for (const row of parseCsv(tripsRaw)) {
+      if (row.trip_id) tripRoutes.set(prefix + row.trip_id, prefix + (row.route_id ?? ""));
+    }
+
+    // stopId → Set(routeId)
+    for (const row of parseCsv(stopTimesRaw)) {
+      if (!row.stop_id || !row.trip_id) continue;
+      const routeId = tripRoutes.get(prefix + row.trip_id);
+      if (!routeId) continue;
+      const stopId = prefix + row.stop_id;
+      let set = stopToRoutes.get(stopId);
+      if (!set) {
+        set = new Set();
+        stopToRoutes.set(stopId, set);
+      }
+      set.add(routeId);
+    }
   }
 
+  if (!anyLoaded) return null;
   return { stops, routes, stopToRoutes };
 }
 

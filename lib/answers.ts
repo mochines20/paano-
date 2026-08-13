@@ -149,18 +149,15 @@ function asNumber(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Extract the first balanced {...} JSON object from a string, tolerating
- * markdown fences and stray text. Returns null if no object found. */
-export function extractJsonObject(text: string): string | null {
-  let clean = text.trim();
-  // Strip ```json ... ``` fences
-  clean = clean.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-  const start = clean.indexOf("{");
-  if (start === -1) return null;
+/** Kunin ang lahat ng balanced {...} JSON object candidates mula sa text. */
+export function extractJsonObjects(text: string): string[] {
+  const clean = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const out: string[] = [];
   let depth = 0;
   let inString = false;
   let escaped = false;
-  for (let i = start; i < clean.length; i++) {
+  let start = -1;
+  for (let i = 0; i < clean.length; i++) {
     const ch = clean[i];
     if (inString) {
       if (escaped) escaped = false;
@@ -169,13 +166,28 @@ export function extractJsonObject(text: string): string | null {
       continue;
     }
     if (ch === '"') inString = true;
-    else if (ch === "{") depth++;
-    else if (ch === "}") {
+    else if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
       depth--;
-      if (depth === 0) return clean.slice(start, i + 1);
+      if (depth === 0 && start !== -1) {
+        out.push(clean.slice(start, i + 1));
+        start = -1;
+      }
     }
   }
-  return null;
+  return out;
+}
+
+/** Extract ang una (default) o huling balanced {...} JSON object.
+ * Ang "last" ay para sa vision models na may thinking block — ang totoong
+ * sagot ay kadalasan ang huling object, hindi ang schema echo sa loob ng
+ * reasoning. */
+export function extractJsonObject(text: string, opts?: { last?: boolean }): string | null {
+  const candidates = extractJsonObjects(text);
+  if (candidates.length === 0) return null;
+  return opts?.last ? candidates[candidates.length - 1] : candidates[0];
 }
 
 /** Validate/normalize raw parsed JSON into a PaanoAnswer. Falls back to a
@@ -334,8 +346,8 @@ function normalizeLink(v: unknown): OfficialLink | null {
  * 2. validate/normalize
  * 3. kung lahat pumalpak, return null — the provider wrapper produces a
  *    human-readable fallback from the raw text. */
-export function parseModelOutput(rawText: string): PaanoAnswer | null {
-  const obj = extractJsonObject(rawText);
+export function parseModelOutput(rawText: string, opts?: { last?: boolean }): PaanoAnswer | null {
+  const obj = extractJsonObject(rawText, opts);
   if (!obj) return null;
   try {
     return normalizeAnswer(JSON.parse(obj));

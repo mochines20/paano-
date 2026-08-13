@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { answerHash } from "@/lib/feedback";
 import { answerToText } from "@/lib/answers";
 import type { PaanoAnswer } from "@/lib/answers";
 
@@ -11,14 +12,14 @@ import type { PaanoAnswer } from "@/lib/answers";
 
 const CATEGORY_META: Record<
   PaanoAnswer["category"],
-  { label: string; badge: string; accent: string }
+  { label: string; badge: string; accent: string; bar: string }
 > = {
-  cooking: { label: "Lutong Bahay", badge: "bg-amber-100 text-amber-800", accent: "border-amber-300" },
-  commute: { label: "Commute", badge: "bg-sky-100 text-sky-800", accent: "border-sky-300" },
-  diy: { label: "Gawa-Bahay", badge: "bg-emerald-100 text-emerald-800", accent: "border-emerald-300" },
-  first_aid: { label: "First Aid", badge: "bg-rose-100 text-rose-800", accent: "border-rose-300" },
-  docs: { label: "Docs Guide", badge: "bg-indigo-100 text-indigo-800", accent: "border-indigo-300" },
-  generic: { label: "PAANO", badge: "bg-zinc-100 text-zinc-700", accent: "border-zinc-300" },
+  cooking: { label: "Lutong Bahay", badge: "bg-amber-100 text-amber-800", accent: "border-amber-300", bar: "bg-gradient-to-r from-amber-500 to-orange-400" },
+  commute: { label: "Commute", badge: "bg-sky-100 text-sky-800", accent: "border-sky-300", bar: "bg-gradient-to-r from-sky-500 to-cyan-400" },
+  diy: { label: "Gawa-Bahay", badge: "bg-emerald-100 text-emerald-800", accent: "border-emerald-300", bar: "bg-gradient-to-r from-emerald-500 to-green-400" },
+  first_aid: { label: "First Aid", badge: "bg-rose-100 text-rose-800", accent: "border-rose-300", bar: "bg-gradient-to-r from-rose-500 to-red-400" },
+  docs: { label: "Docs Guide", badge: "bg-indigo-100 text-indigo-800", accent: "border-indigo-300", bar: "bg-gradient-to-r from-indigo-500 to-violet-400" },
+  generic: { label: "PAANO", badge: "bg-zinc-100 text-zinc-700", accent: "border-zinc-300", bar: "bg-gradient-to-r from-zinc-500 to-zinc-400" },
 };
 
 const MODE_LABELS: Record<string, string> = {
@@ -42,6 +43,26 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
   const meta = CATEGORY_META[answer.category];
   const spec = answer.category_specific;
   const [copied, setCopied] = useState(false);
+  const [vote, setVote] = useState<boolean | null>(null);
+  const [correction, setCorrection] = useState("");
+  const [showCorrection, setShowCorrection] = useState(false);
+  const [feedbackDone, setFeedbackDone] = useState(false);
+  const [flagCount, setFlagCount] = useState(0);
+  const hash = useRef(answerHash(answer));
+
+  // Community flags: may nagsabing i-verify ba ang sagot na ito?
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/feedback?hash=${encodeURIComponent(hash.current)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d && typeof d.count === "number") setFlagCount(d.count);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function copyAnswer() {
     try {
@@ -53,10 +74,39 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
     }
   }
 
+  async function submitFeedback(helpful: boolean) {
+    setVote(helpful);
+    if (helpful) {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answerHash: hash.current, helpful: true }),
+      });
+      setFeedbackDone(true);
+    } else {
+      setShowCorrection(true);
+    }
+  }
+
+  async function submitCorrection() {
+    await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        answerHash: hash.current,
+        helpful: false,
+        correction: correction.trim() || null,
+      }),
+    });
+    setFeedbackDone(true);
+    setShowCorrection(false);
+  }
+
   return (
     <article
-      className={`rounded-2xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md ${meta.accent} dark:bg-zinc-900`}
+      className={`animate-fade-up overflow-hidden rounded-2xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md ${meta.accent} dark:bg-zinc-900`}
     >
+      <div aria-hidden className={`-mx-4 -mt-4 mb-3 h-1 ${meta.bar}`} />
       <header className="mb-2 flex items-start justify-between gap-2">
         <div>
           <span
@@ -114,7 +164,116 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
           {answer.official_link.label}
         </a>
       )}
+
+      {flagCount > 0 && (
+        <p className="mt-3 rounded-lg bg-orange-50 px-3 py-2 text-xs font-medium text-orange-900 dark:bg-orange-900/20 dark:text-orange-200">
+          May {flagCount} nagsabing i-verify ang sagot na ito — may correction
+          ang komunidad. I-double check bago kumilos.
+        </p>
+      )}
+
+      <CommunityFeedback
+        vote={vote}
+        showCorrection={showCorrection}
+        correction={correction}
+        feedbackDone={feedbackDone}
+        onVote={(v) => void submitFeedback(v)}
+        onCorrectionChange={setCorrection}
+        onCorrectionSubmit={() => void submitCorrection()}
+        onCancelCorrection={() => {
+          setShowCorrection(false);
+          setVote(null);
+        }}
+      />
     </article>
+  );
+}
+
+function CommunityFeedback({
+  vote,
+  showCorrection,
+  correction,
+  feedbackDone,
+  onVote,
+  onCorrectionChange,
+  onCorrectionSubmit,
+  onCancelCorrection,
+}: {
+  vote: boolean | null;
+  showCorrection: boolean;
+  correction: string;
+  feedbackDone: boolean;
+  onVote: (v: boolean) => void;
+  onCorrectionChange: (v: string) => void;
+  onCorrectionSubmit: () => void;
+  onCancelCorrection: () => void;
+}) {
+  if (feedbackDone) {
+    return (
+      <p className="animate-pop mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+        Salamat! Nakatulong ang feedback mo sa komunidad.
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+      {showCorrection ? (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+            Ano ang dapat itama? (makakatulong ito sa iba)
+          </p>
+          <textarea
+            value={correction}
+            onChange={(e) => onCorrectionChange(e.target.value)}
+            rows={2}
+            maxLength={2000}
+            placeholder="Hal. 'mas tama ang ₱26 na pamasahe ngayon'"
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-900 outline-none focus:border-orange-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={onCorrectionSubmit}
+              className="rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-zinc-950 hover:bg-orange-400"
+            >
+              Ipadala
+            </button>
+            <button
+              onClick={onCancelCorrection}
+              className="rounded-full px-3 py-1 text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+            >
+              Kanselahin
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500">
+          <span className="mr-1">Nakatulong ba ito?</span>
+          <button
+            onClick={() => onVote(true)}
+            aria-label="Oo, nakatulong"
+            className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${
+              vote === true
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+            }`}
+          >
+            Oo
+          </button>
+          <button
+            onClick={() => onVote(false)}
+            aria-label="Hindi nakatulong"
+            className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${
+              vote === false
+                ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+            }`}
+          >
+            Hindi
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

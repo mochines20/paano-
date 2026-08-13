@@ -13,6 +13,8 @@ import { PAANO_SYSTEM_PROMPT } from "@/lib/prompts/system-prompt";
 
 const GROQ_BASE = "https://api.groq.com/openai/v1";
 const DEFAULT_GROQ_MODEL = "openai/gpt-oss-20b";
+/** Vision model para sa image→recipe (na-verify: may image input support). */
+const DEFAULT_GROQ_VISION_MODEL = "qwen/qwen3.6-27b";
 
 export function groqConfigured(): boolean {
   return Boolean(process.env.GROQ_API_KEY);
@@ -61,6 +63,54 @@ async function complete(
     throw new Error(`Groq API error ${res.status}: ${detail.slice(0, 300)}`);
   }
 
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+  };
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
+/**
+ * Vision call — image → text. Walang json_object mode (hindi gumagana sa
+ * vision models ng Groq); ang sagot ay ine-extract bilang JSON via ang
+ * repair pipeline (last balanced object — may thinking block minsan).
+ */
+export async function askGroqVision(text: string, imageDataUrl: string): Promise<string> {
+  if (!groqConfigured()) {
+    throw new Error(
+      "GROQ_API_KEY is not set. Kopyahin ang .env.example papunta sa .env.local at ilagay ang iyong API key.",
+    );
+  }
+  const model = process.env.GROQ_VISION_MODEL || DEFAULT_GROQ_VISION_MODEL;
+
+  const res = await fetch(`${GROQ_BASE}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.2,
+      max_tokens: 800,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Direktang sagot lang, walang paliwanag. " + text,
+            },
+            { type: "image_url", image_url: { url: imageDataUrl } },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Groq vision error ${res.status}: ${detail.slice(0, 300)}`);
+  }
   const data = (await res.json()) as {
     choices?: { message?: { content?: string } }[];
   };

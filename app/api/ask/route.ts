@@ -3,6 +3,7 @@ import { PipelineError, runAnswerPipeline } from "@/lib/pipeline";
 import { fallbackAnswer } from "@/lib/answers";
 import type { ChatMessage } from "@/lib/answers";
 import { logQuestion } from "@/lib/logging";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/ask — thin HTTP layer; ang business logic ay nasa
@@ -18,6 +19,16 @@ const MAX_QUESTION_LENGTH = 1000;
 
 interface AskBody {
   messages: { role: string; content: string }[];
+  image?: string;
+}
+
+/** Validate ang image data URL (image→recipe). Max ~5MB base64. */
+function validImage(image: unknown): image is string {
+  return (
+    typeof image === "string" &&
+    /^data:image\/(png|jpe?g|webp|heic);base64,[A-Za-z0-9+/=]+$/.test(image) &&
+    image.length <= 5_000_000
+  );
 }
 
 export async function POST(req: Request) {
@@ -58,8 +69,35 @@ export async function POST(req: Request) {
     );
   }
 
+  // Rate limit (cost control — libreng tier): 15 tanong/araw + burst.
+  const limit = checkRateLimit(clientIp ?? "unknown");
+  if (!limit.ok) {
+    const res = NextResponse.json(
+      {
+        error:
+          limit.scope === "daily"
+            ? "Naabot mo na ang libreng limit (15 tanong/araw). Balik ka bukas."
+            : "Masyadong mabilis ang pagtatanong. Sandali lang at subukan muli.",
+        remaining: limit.remaining,
+      },
+      { status: 429 },
+    );
+    if (limit.scope === "burst" && limit.retryAfterMs > 0) {
+      res.headers.set("Retry-After", String(Math.ceil(limit.retryAfterMs / 1000)));
+    }
+    return res;
+  }
+
+  const image = validImage(body.image) ? body.image : undefined;
+  if (body.image !== undefined && !image) {
+    return NextResponse.json(
+      { error: "Hindi valid ang larawan. Subukan ang PNG/JPEG hanggang 5MB." },
+      { status: 400 },
+    );
+  }
+
   try {
-    const result = await runAnswerPipeline(messages);
+    const result = await runAnswerPipeline(messages, { image });
     const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
 
     await logQuestion({

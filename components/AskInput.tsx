@@ -50,7 +50,7 @@ export function AskInput({ compact = false }: { compact?: boolean }) {
       <button
         type="submit"
         disabled={!value.trim()}
-        className="shrink-0 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-zinc-950 transition-colors hover:bg-orange-400 disabled:opacity-40"
+        className="shrink-0 rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-zinc-950 transition-all duration-150 hover:bg-orange-400 active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:opacity-40"
       >
         Itanong
       </button>

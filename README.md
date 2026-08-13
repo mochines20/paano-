@@ -11,10 +11,26 @@ Stack: Next.js (App Router) + Tailwind CSS v4 + Gemini (`@google/genai`) **o** G
 | 0 — Setup (repo, env, system prompt) | Done |
 | 1 — Core Q&A engine (`/paano`, `/api/ask`, per-IP logging) | Done |
 | 2 — Structured answer templates + AnswerCard per category | Done |
-| 3 — Image recognition | Next |
-| 4 — Commute data + community layer | Next |
-| 5 — First aid + docs static cards | Next |
-| 6 — Monetization + hardening | Next |
+| 3 — Image recognition (photo ng sangkap → ulam) | Done |
+| 4 — Commute data + community layer (thumbs/corrections) | Done |
+| 5 — First aid + docs static cards | Done |
+| 6 — Rate limits + hardening (auth/accounts = future) | Partial |
+
+## Beyond the original plan
+
+- **Community verification (ang moat)** — 👍/👎 + free-text correction sa bawat
+  sagot → Supabase `answer_feedback`; "may nagsabing i-verify" badge kapag may
+  correction ang komunidad.
+- **Budget/pantry cooking** — "anong ulam sa ₱200, may manok ako?" na may
+  palengke price grounding (DA Bantay Presyo; fallback table kung walang URL).
+- **Provincial GTFS** — auto-detect ng `data/gtfs/provincial/<city>/` feeds
+  (i-drop lang ang GTFS files). Tandaan: ang PARASOL repo ay may mga placeholder
+  na walang laman — walang usable na public provincial feed pa.
+- **Popular paano** — trending chips sa chat empty state (mula sa question logs).
+- **PWA** — installable, offline app shell, Web Share Target (i-share ang text
+  papunta sa /paano?q=).
+- **Rate limits** — 15 tanong/araw + 5/min bawat IP (in-memory; Redis kapag
+  nag-scale).
 
 ## Setup
 
@@ -39,24 +55,32 @@ Stack: Next.js (App Router) + Tailwind CSS v4 + Gemini (`@google/genai`) **o** G
 app/
   page.tsx            Landing page (dark, isang CTA: ask input)
   paano/page.tsx      Chat page (kumukuha ng ?q= para i-auto-ask)
-  api/ask/route.ts    Thin HTTP layer: validation + logging + error mapping
+  api/ask/route.ts    Thin HTTP layer: validation + rate limit + logging
+  api/feedback/       Community thumbs/corrections + correction counts
+  api/trending/       Top "paano" questions (30 araw) para sa chips
 components/
   AskInput.tsx        Ang nag-iisang CTA (hero + sticky)
   StickyAsk.tsx       Persistent ask bar kapag naka-scroll na
-  Chat.tsx            Client chat UI (multi-turn, follow-up chips, retry)
-  AnswerCard.tsx      Structured answer card, ibang layout per category
+  Chat.tsx            Client chat UI (multi-turn, follow-ups, image upload)
+  AnswerCard.tsx      Structured card + community feedback + copy
+  PwaRegister.tsx     Service worker registration (production)
   icons.tsx           Line icons ng feature cards
 lib/
-  pipeline.ts         Business logic: docs-static → commute grounding → LLM
-                      → suggestions. Ito ang puso ng /api/ask.
+  pipeline.ts         Business logic: image→recipe → docs-static →
+                      commute/cooking grounding → LLM → suggestions.
   prompts/system-prompt.ts   PAANO Taglish system prompt (fallback/disclaimer rules)
   answers.ts          Answer types + JSON parse/validate/repair + answerToText
   llm.ts              Provider dispatcher (LLM_PROVIDER env)
   gemini.ts           Gemini provider (JSON mode, retry, graceful fallback)
-  groq.ts             Groq provider (OpenAI-compatible, json_object mode)
+  groq.ts             Groq provider (OpenAI-compatible + vision via qwen)
+  rate-limit.ts       Per-IP limiter (15/araw + 5/min burst)
+  feedback.ts         Community feedback (answer hash → Supabase)
   commute/fares.ts    LTFRB fare formulas (configurable constants, cited)
-  commute/gtfs.ts     GTFS reader + stop/route lookup (data/gtfs/)
+  commute/gtfs.ts     GTFS reader (metro + provincial) + stop/route lookup
   commute/ground.ts   Commute grounding: GTFS routes + fare → LLM context
+  cooking/prices.ts   Palengke prices (DA Bantay Presyo o fallback table)
+  cooking/ground.ts   Budget/pantry cooking grounding
+  cooking/dishes.ts   Curated Filipino dish map (image→recipe matching)
   docs/data.ts        Human-reviewed doc guides (PSA, LTO, DFA, NBI, PhilSys)
   docs/service.ts     Doc matching + DocGuide → structured answer + follow-ups
   supabase.ts         Supabase client (graceful kung walang config)
@@ -78,6 +102,10 @@ supabase/schema.sql   Tables para sa question logs (+ future feedback/routes)
   (ang base data ng Sakay.ph; Philippine Transit App Challenge). I-download via
   `npm run gtfs:download` papunta sa `data/gtfs/` (gitignored). Lazy-loaded at
   naka-cache sa memory ng server.
+- **Provincial**: i-drop ang GTFS files sa `data/gtfs/provincial/<city>/` —
+  auto-detect ng loader. Babala: ang PARASOL/safetravelph repo ay may mga
+  placeholder files na WALANG laman — wala pang usable na public provincial
+  feed; handa na ang infrastructure, kulang ang data.
 - **Fares**: LTFRB fare formula bilang configurable constants sa
   `lib/commute/fares.ts` (epektibo 2026-03-19): modern jeepney ₱17 (unang 1km)
   + ₱2.30/km; ordinary bus ₱15 (unang 5km) + ₱2.49/km. Source: ltfrb.gov.ph.
