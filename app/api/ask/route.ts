@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { askPaano, fallbackAnswer, geminiConfigured } from "@/lib/gemini";
-import type { ChatMessage } from "@/lib/gemini";
+import { askPaano, llmConfigError, llmConfigured } from "@/lib/llm";
+import { fallbackAnswer } from "@/lib/answers";
+import type { ChatMessage } from "@/lib/answers";
 import { logQuestion } from "@/lib/logging";
 
 export const runtime = "nodejs";
@@ -51,12 +52,9 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!geminiConfigured()) {
+  if (!llmConfigured()) {
     return NextResponse.json(
-      {
-        error:
-          "Hindi pa naka-set ang GEMINI_API_KEY. Tingnan ang .env.example at i-configure ang .env.local.",
-      },
+      { error: llmConfigError() },
       { status: 503 },
     );
   }
@@ -78,8 +76,8 @@ export async function POST(req: Request) {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "May nangyaring mali. Subukan muli.";
-    // Umabot ba sa Gemini o config lang? Distinguish para sa malinaw na UX.
-    const isConfig = message.includes("GEMINI_API_KEY");
+    // Config problem ba o provider outage? Distinguish para sa malinaw na UX.
+    const isConfig = message.includes("API_KEY");
     return NextResponse.json(
       {
         error: isConfig

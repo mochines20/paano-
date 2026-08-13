@@ -2,7 +2,7 @@
 
 Ang praktikal na **"paano"** para sa buhay sa Pilipinas — Taglish, hyper-local, at structured na mga sagot para sa **commute**, **lutong bahay**, **gawa-bahay**, **first aid (household-level)**, at **government docs guide**.
 
-Stack: Next.js (App Router) + Tailwind CSS v4 + Gemini (`@google/genai`) + Supabase (optional logging).
+Stack: Next.js (App Router) + Tailwind CSS v4 + Gemini (`@google/genai`) **o** Groq (OpenAI-compatible, pinili sa `LLM_PROVIDER`) + Supabase (optional logging).
 
 ## Sprint status
 
@@ -23,8 +23,8 @@ Stack: Next.js (App Router) + Tailwind CSS v4 + Gemini (`@google/genai`) + Supab
    ```bash
    cp .env.example .env.local   # (Windows: copy .env.example .env.local)
    ```
-   - `GEMINI_API_KEY` — kailangan (Google AI Studio: https://aistudio.google.com/apikey)
-   - `GEMINI_MODEL` — optional, default `gemini-2.5-flash`
+   - `GEMINI_API_KEY` **o** `GROQ_API_KEY` — kahit isa ang kailangan
+   - `LLM_PROVIDER` — `gemini` (default) o `groq`
    - `SUPABASE_URL` / `SUPABASE_ANON_KEY` — optional sa dev; para sa question logging
 3. Supabase (optional): i-run ang `supabase/schema.sql` sa SQL editor.
 4. `npm run dev` → http://localhost:3000
@@ -42,7 +42,9 @@ components/
 lib/
   prompts/system-prompt.ts   PAANO Taglish system prompt (fallback/disclaimer rules)
   answers.ts          Answer types + JSON parse/validate/repair
-  gemini.ts           Gemini client (JSON mode, retry, graceful fallback)
+  gemini.ts           Gemini provider (JSON mode, retry, graceful fallback)
+  groq.ts             Groq provider (OpenAI-compatible, json_object mode)
+  llm.ts              Provider dispatcher (LLM_PROVIDER env)
   supabase.ts         Supabase client (graceful kung walang config)
   logging.ts          Per-IP question logging (best-effort)
 supabase/schema.sql   Tables para sa question logs (+ future feedback/routes)

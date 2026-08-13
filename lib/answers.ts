@@ -6,6 +6,17 @@
  * → kung talagang sira, i-wrap as a generic text answer (never crash).
  */
 
+export interface ChatMessage {
+  role: "user" | "model";
+  content: string;
+}
+
+export interface AskResult {
+  answer: PaanoAnswer;
+  raw: string;
+  repaired: boolean;
+}
+
 export type AnswerCategory =
   | "cooking"
   | "commute"
@@ -187,12 +198,21 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
   if (typeof spec !== "object" || spec === null) return base;
 
   const s = spec as Record<string, unknown>;
+  // Dalawang posibleng hugis ang sinusuportahan:
+  //   nested: { commute: { origin: ... } }   ← kung ano ang inilalarawan ng prompt
+  //   flat:   { origin: ... }                ← defensive, kung ganito lumabas
+  const nested = (s[category] as unknown) ?? null;
+  const src =
+    typeof nested === "object" && nested !== null
+      ? (nested as Record<string, unknown>)
+      : s;
+
   switch (category) {
     case "cooking":
       base.category_specific = {
         category: "cooking",
-        ingredients: Array.isArray(s.ingredients)
-          ? (s.ingredients as unknown[])
+        ingredients: Array.isArray(src.ingredients)
+          ? (src.ingredients as unknown[])
               .filter((i) => typeof i === "object" && i !== null)
               .map((i) => {
                 const it = i as Record<string, unknown>;
@@ -200,22 +220,22 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
               })
               .slice(0, 30)
           : [],
-        servings: asString(s.servings) ?? "",
-        tips: asStringArray(s.tips),
+        servings: asString(src.servings) ?? "",
+        tips: asStringArray(src.tips),
       };
       break;
     case "commute": {
-      const tr = (typeof s.time_range === "object" && s.time_range !== null
-        ? s.time_range
+      const tr = (typeof src.time_range === "object" && src.time_range !== null
+        ? src.time_range
         : {}) as Record<string, unknown>;
-      const fr = (typeof s.fare_range === "object" && s.fare_range !== null
-        ? s.fare_range
+      const fr = (typeof src.fare_range === "object" && src.fare_range !== null
+        ? src.fare_range
         : {}) as Record<string, unknown>;
       base.category_specific = {
         category: "commute",
-        origin: asString(s.origin) ?? "?",
-        destination: asString(s.destination) ?? "?",
-        modes: asStringArray(s.modes),
+        origin: asString(src.origin) ?? "?",
+        destination: asString(src.destination) ?? "?",
+        modes: asStringArray(src.modes),
         time_range: {
           min: asNumber(tr.min) ?? 0,
           max: asNumber(tr.max) ?? 0,
@@ -226,34 +246,34 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
           max: asNumber(fr.max) ?? 0,
           currency: "PHP",
         },
-        fare_notes: asString(s.fare_notes),
+        fare_notes: asString(src.fare_notes),
       };
       break;
     }
     case "diy":
       base.category_specific = {
         category: "diy",
-        tools: asStringArray(s.tools),
-        materials: asStringArray(s.materials),
-        safety_warning: asString(s.safety_warning),
+        tools: asStringArray(src.tools),
+        materials: asStringArray(src.materials),
+        safety_warning: asString(src.safety_warning),
       };
       break;
     case "first_aid":
       base.category_specific = {
         category: "first_aid",
-        severity: s.severity === "moderate" ? "moderate" : "mild",
-        do_list: asStringArray(s.do_list),
-        don_t_list: asStringArray(s.don_t_list),
-        see_doctor_threshold: asString(s.see_doctor_threshold) ?? "",
+        severity: src.severity === "moderate" ? "moderate" : "mild",
+        do_list: asStringArray(src.do_list),
+        don_t_list: asStringArray(src.don_t_list),
+        see_doctor_threshold: asString(src.see_doctor_threshold) ?? "",
       };
       break;
     case "docs":
       base.category_specific = {
         category: "docs",
-        agency: asString(s.agency) ?? "?",
-        requirements: asStringArray(s.requirements),
-        fees: Array.isArray(s.fees)
-          ? (s.fees as unknown[])
+        agency: asString(src.agency) ?? "?",
+        requirements: asStringArray(src.requirements),
+        fees: Array.isArray(src.fees)
+          ? (src.fees as unknown[])
               .filter((f) => typeof f === "object" && f !== null)
               .map((f) => {
                 const it = f as Record<string, unknown>;
@@ -265,12 +285,12 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
               })
               .slice(0, 20)
           : [],
-        processing_time: asString(s.processing_time),
-        last_verified: asString(s.last_verified) ?? "hindi pa nabe-verify",
+        processing_time: asString(src.processing_time),
+        last_verified: asString(src.last_verified) ?? "hindi pa nabe-verify",
       };
       break;
     case "generic":
-      base.category_specific = { category: "generic", note: asString(s.note) ?? "" };
+      base.category_specific = { category: "generic", note: asString(src.note) ?? "" };
       break;
   }
   return base;
@@ -301,7 +321,7 @@ function normalizeLink(v: unknown): OfficialLink | null {
 /** Parse raw model output into a PaanoAnswer with graceful degradation:
  * 1. try extract + parse as JSON
  * 2. validate/normalize
- * 3. kung lahat pumalpak, return null — the API route will produce a
+ * 3. kung lahat pumalpak, return null — the provider wrapper produces a
  *    human-readable fallback from the raw text. */
 export function parseModelOutput(rawText: string): PaanoAnswer | null {
   const obj = extractJsonObject(rawText);
@@ -311,4 +331,38 @@ export function parseModelOutput(rawText: string): PaanoAnswer | null {
   } catch {
     return null;
   }
+}
+
+/** Last-resort answer kapag sira talaga ang model output — para may
+ * maipakita pa rin ang UI imbes na blank card. */
+export function wrapRawText(raw: string): PaanoAnswer {
+  return {
+    category: "generic",
+    title: "Sagot (raw)",
+    summary:
+      "Hindi ma-parse ng PAANO ang structured na sagot. Narito ang direktang tugon ng modelo:",
+    steps: raw
+      .split(/\n+/)
+      .map((l) => l.replace(/^[-*•\d.)\s]+/, "").trim())
+      .filter((l) => l.length > 0)
+      .slice(0, 20),
+    confidence: "low",
+    disclaimer: null,
+    official_link: null,
+    category_specific: null,
+  };
+}
+
+/** Fallback answer nang walang tawag sa modelo (para sa hard errors). */
+export function fallbackAnswer(message: string): PaanoAnswer {
+  return {
+    category: "generic",
+    title: "Sandali lang…",
+    summary: message,
+    steps: [],
+    confidence: "low",
+    disclaimer: null,
+    official_link: null,
+    category_specific: null,
+  };
 }

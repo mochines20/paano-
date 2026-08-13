@@ -1,18 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { DEFAULT_GEMINI_MODEL, PAANO_SYSTEM_PROMPT } from "@/lib/prompts/system-prompt";
-import { normalizeAnswer, parseModelOutput } from "@/lib/answers";
-import type { PaanoAnswer } from "@/lib/answers";
-
-export interface ChatMessage {
-  role: "user" | "model";
-  content: string;
-}
-
-export interface AskResult {
-  answer: PaanoAnswer;
-  raw: string;
-  repaired: boolean;
-}
+import { parseModelOutput, wrapRawText } from "@/lib/answers";
+import type { AskResult, ChatMessage, PaanoAnswer } from "@/lib/answers";
 
 const MODEL = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL;
 
@@ -20,10 +9,10 @@ export function geminiConfigured(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
 }
 
-/** Core ask: call Gemini with the PAANO system prompt + conversation,
- * then parse the JSON response. Throws on API-level failures so the route
- * can map them to a clean HTTP error. */
-export async function askPaano(messages: ChatMessage[]): Promise<AskResult> {
+/** Gemini provider: call with the PAANO system prompt + conversation,
+ * JSON mode, then parse. Throws on API-level failures so the route can
+ * map them to a clean HTTP error. */
+export async function askGemini(messages: ChatMessage[]): Promise<AskResult> {
   if (!geminiConfigured()) {
     throw new Error(
       "GEMINI_API_KEY is not set. Kopyahin ang .env.example papunta sa .env.local at ilagay ang iyong API key.",
@@ -53,28 +42,14 @@ export async function askPaano(messages: ChatMessage[]): Promise<AskResult> {
   let answer = parseModelOutput(raw);
   if (!answer) {
     const retry = await retryStructured(ai, trimmed);
-    if (retry) {
-      answer = retry;
-    }
+    if (retry) answer = retry;
   }
 
   if (!answer) {
-    // Last resort: wrap the raw text as a generic answer so the UI
-    // still shows something useful instead of a blank card.
-    answer = {
-      category: "generic",
-      title: "Sagot (raw)",
-      summary:
-        "Hindi ma-parse ng PAANO ang structured na sagot. Narito ang direktang tugon ng modelo:",
-      steps: splitIntoSteps(raw),
-      confidence: "low",
-      disclaimer: null,
-      official_link: null,
-      category_specific: null,
-    };
+    return { answer: wrapRawText(raw), raw, repaired: raw.length > 0 };
   }
 
-  return { answer, raw, repaired: answer.category === "generic" && raw.length > 0 };
+  return { answer, raw, repaired: false };
 }
 
 async function retryStructured(
@@ -107,27 +82,3 @@ async function retryStructured(
     return null;
   }
 }
-
-function splitIntoSteps(text: string): string[] {
-  return text
-    .split(/\n+/)
-    .map((l) => l.replace(/^[-*•\d.)\s]+/, "").trim())
-    .filter((l) => l.length > 0)
-    .slice(0, 20);
-}
-
-/** Build a fallback answer without calling the model (used for hard errors). */
-export function fallbackAnswer(message: string): PaanoAnswer {
-  return {
-    category: "generic",
-    title: "Sandali lang…",
-    summary: message,
-    steps: [],
-    confidence: "low",
-    disclaimer: null,
-    official_link: null,
-    category_specific: null,
-  };
-}
-
-export { normalizeAnswer };
