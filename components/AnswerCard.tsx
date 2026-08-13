@@ -68,7 +68,7 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
     try {
       await navigator.clipboard.writeText(answerToText(answer));
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setTimeout(() => setCopied(false), 1800);
     } catch {
       /* hindi available ang clipboard — huwag mag-crash */
     }
@@ -124,9 +124,27 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
             onClick={() => void copyAnswer()}
             title="Kopyahin ang sagot"
             aria-label="Kopyahin ang sagot"
-            className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+            className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-700 active:scale-95 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
           >
-            {copied ? "Kopyado!" : "Kopyahin"}
+            {copied ? (
+              <>
+                <svg
+                  className="h-3 w-3 text-emerald-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path className="check-draw" d="M5 13l4 4L19 7" />
+                </svg>
+                Kopyado!
+              </>
+            ) : (
+              "Kopyahin"
+            )}
           </button>
         </div>
       </header>
@@ -252,7 +270,7 @@ function CommunityFeedback({
           <button
             onClick={() => onVote(true)}
             aria-label="Oo, nakatulong"
-            className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${
+            className={`rounded-full px-2.5 py-1 font-semibold transition-all duration-150 active:scale-90 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900 ${
               vote === true
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                 : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
@@ -263,7 +281,7 @@ function CommunityFeedback({
           <button
             onClick={() => onVote(false)}
             aria-label="Hindi nakatulong"
-            className={`rounded-full px-2.5 py-1 font-semibold transition-colors ${
+            className={`rounded-full px-2.5 py-1 font-semibold transition-all duration-150 active:scale-90 focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900 ${
               vote === false
                 ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
                 : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
@@ -289,7 +307,7 @@ function ConfidenceBadge({ confidence }: { confidence: PaanoAnswer["confidence"]
       className="flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
       title={CONFIDENCE_LABEL[confidence]}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+      <span className={`animate-pulse-dot h-1.5 w-1.5 rounded-full ${dot}`} />
       {confidence === "high" ? "Verified" : confidence === "medium" ? "Tantiya" : "I-verify"}
     </span>
   );
@@ -299,8 +317,12 @@ function StepsList({ steps }: { steps: string[] }) {
   return (
     <ol className="space-y-2">
       {steps.map((step, i) => (
-        <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
-          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+        <li
+          key={i}
+          className="animate-fade-up flex gap-2.5 text-sm leading-relaxed text-zinc-800 dark:text-zinc-200"
+          style={{ animationDelay: `${i * 60}ms` }}
+        >
+          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white transition-transform duration-150 hover:scale-110 dark:bg-zinc-100 dark:text-zinc-900">
             {i + 1}
           </span>
           <span>{step}</span>

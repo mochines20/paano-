@@ -59,6 +59,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
   const [loading, setLoading] = useState(false);
   const [trending, setTrending] = useState<string[]>([]);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [showJump, setShowJump] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSentRef = useRef(false);
@@ -68,7 +69,18 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
   function onScrollArea() {
     const el = scrollRef.current;
     if (!el) return;
-    pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    pinnedRef.current = distance < 80;
+    setShowJump(!pinnedRef.current && messages.length > 0);
+  }
+
+  function jumpToBottom() {
+    pinnedRef.current = true;
+    setShowJump(false);
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }
 
   async function onPickImage(file: File | undefined) {
@@ -186,9 +198,25 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
       <div ref={scrollRef} onScroll={onScrollArea} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-6">
         {messages.length === 0 && (
           <div className="mx-auto max-w-xl">
-            <h2 className="text-lg font-bold text-zinc-50">
-              Ano ang gagawin mo ngayon?
-            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="animate-float-soft text-orange-500" aria-hidden>
+                <svg
+                  className="h-7 w-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M9.5 9.5h.01M14.5 9.5h.01M8 15c1-1.5 2.5-2 4-2s3 .5 4 2" />
+                </svg>
+              </span>
+              <h2 className="text-lg font-bold text-zinc-50">
+                Ano ang gagawin mo ngayon?
+              </h2>
+            </div>
             <p className="mb-4 text-sm leading-relaxed text-zinc-400">
               Tanong sa Taglish — commute, lutong bahay, gawa-bahay, first aid,
               o requirements ng government documents. Sagot na parang tita o kuya
@@ -204,7 +232,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                     <button
                       key={s}
                       onClick={() => void send(s)}
-                      className="rounded-full bg-orange-500/10 px-3 py-1.5 text-xs font-medium text-orange-300 ring-1 ring-orange-500/30 transition-colors hover:bg-orange-500/20"
+                      className="rounded-full bg-orange-500/10 px-3 py-1.5 text-xs font-medium text-orange-300 ring-1 ring-orange-500/30 transition-all duration-150 hover:bg-orange-500/20 active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
                     >
                       {s}
                     </button>
@@ -217,7 +245,8 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                 <button
                   key={s}
                   onClick={() => void send(s)}
-                  className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:border-orange-500/60 hover:text-orange-300"
+                  className="animate-fade-up rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-all duration-150 hover:border-orange-500/60 hover:text-orange-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
+                  style={{ animationDelay: `${100 + SUGGESTIONS.indexOf(s) * 50}ms` }}
                 >
                   {s}
                 </button>
@@ -252,7 +281,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                   {m.retryQuestion && (
                     <button
                       onClick={() => void send(m.retryQuestion!)}
-                      className="mt-2 rounded-full bg-red-900/60 px-3 py-1 text-xs font-semibold text-red-100 transition-colors hover:bg-red-800/60"
+                      className="mt-2 rounded-full bg-red-900/60 px-3 py-1 text-xs font-semibold text-red-100 transition-all duration-150 hover:bg-red-800/60 active:scale-95 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
                     >
                       Subukan muli
                     </button>
@@ -265,7 +294,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                     <button
                       key={s}
                       onClick={() => void send(s)}
-                      className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:border-orange-500/60 hover:text-orange-300"
+                      className="animate-pop rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-all duration-150 hover:border-orange-500/60 hover:text-orange-300 active:scale-95 focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
                     >
                       {s}
                     </button>
@@ -288,9 +317,9 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
               <div className="skeleton h-14 w-full rounded-xl" />
               <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
                 <span className="flex gap-1">
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-orange-500 [animation-delay:0ms]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-orange-500 [animation-delay:150ms]" />
-                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-orange-500 [animation-delay:300ms]" />
+                  <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-orange-500 [animation-delay:0ms]" />
+                  <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-orange-500 [animation-delay:160ms]" />
+                  <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-orange-500 [animation-delay:320ms]" />
                 </span>
                 Nag-iisip ang PAANO…
               </div>
@@ -298,6 +327,29 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           </div>
         )}
       </div>
+
+      {showJump && (
+        <div className="relative">
+          <button
+            onClick={jumpToBottom}
+            aria-label="Pumunta sa pinakabagong sagot"
+            className="animate-pop absolute -top-12 left-1/2 z-10 -translate-x-1/2 rounded-full border border-zinc-700 bg-zinc-900/95 p-2 text-zinc-300 shadow-lg shadow-black/40 backdrop-blur transition-colors hover:border-orange-500/60 hover:text-orange-300 active:scale-90"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M12 5v14M19 12l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <form
         onSubmit={onSubmit}

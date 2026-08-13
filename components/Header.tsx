@@ -11,8 +11,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
       <nav className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-xl font-black tracking-tight text-zinc-50">
-          PAANO<span className="text-orange-500">.</span>
+        <Link
+          href="/"
+          className="flex items-center gap-1 text-xl font-black tracking-tight text-zinc-50 transition-opacity hover:opacity-90 active:scale-95"
+        >
+          PAANO
+          <span className="animate-pulse-dot text-orange-500">.</span>
         </Link>
         <Link
           href="/paano"

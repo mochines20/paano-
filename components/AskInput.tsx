@@ -23,10 +23,10 @@ export function AskInput({ compact = false }: { compact?: boolean }) {
   return (
     <form
       onSubmit={onSubmit}
-      className={`flex w-full items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 p-1.5 shadow-lg shadow-black/20 backdrop-blur transition-colors focus-within:border-orange-500 ${compact ? "" : "pl-5"}`}
+      className={`group flex w-full items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 p-1.5 shadow-lg shadow-black/20 backdrop-blur transition-all duration-200 focus-within:border-orange-500 focus-within:shadow-orange-500/20 ${compact ? "" : "pl-5"}`}
       role="search"
     >
-      <span className="pl-1 text-zinc-500" aria-hidden>
+      <span className="pl-1 text-zinc-500 transition-colors duration-200 group-focus-within:text-orange-400" aria-hidden>
         <svg
           className="h-4 w-4"
           viewBox="0 0 24 24"
