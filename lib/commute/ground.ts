@@ -4,7 +4,7 @@ import {
   findRoutesTo,
   estimateRouteKm,
 } from "@/lib/commute/gtfs";
-import { estimateFareBand, estimateFareBandForModes, FARE_SOURCE } from "@/lib/commute/fares";
+import { estimateFareBand, estimateFareBandForModes, FARE_SOURCE, nonFormulaModeContext } from "@/lib/commute/fares";
 import type { PaanoAnswer } from "@/lib/answers";
 
 /**
@@ -41,7 +41,6 @@ const INTENT_KEYWORDS = [
   "biyahe",
   "byahe",
   "p2p",
-  "uv express",
   "uv express",
   "van",
   "terminal",
@@ -135,7 +134,7 @@ export async function groundCommuteQuestion(
       parts.push(`estimated distance: ~${km} km`);
       if (fareBand) {
         parts.push(
-          `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max} (trad jeepney ₱14 + ₱2.00/km, modern jeepney ₱17 + ₱2.40/km, ordinary bus ₱15 + ₱2.49/km)`,
+          `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max} (trad jeepney ₱13 + ₱1.80/km, modern jeepney ₱15 + ₱2.20/km, ordinary bus ₱13 + ₱2.25/km, aircon bus ₱15 + ₱2.65/km)`,
         );
       }
     }
@@ -168,18 +167,23 @@ export function applyCommuteGrounding(
     next = { ...next, route_names: g.routes };
   }
   // Fare band batay sa MGA MODE na sinabi ng modelo (hal. jeepney lang →
-  // ₱14–₱17 base; bus lang → ₱15–₱18 base) — mas precise kaysa lahat-ng-mode.
+  // ₱13–₱15 base; bus lang → ₱13–₱15 base) — mas precise kaysa lahat-ng-mode.
+  // P2P, UV Express, at tricycle ay HINDI kasama dahil walang per-km formula.
   const fareBand =
     g.km !== null
       ? estimateFareBandForModes(g.km, next.modes) ?? g.fareBand
       : g.fareBand;
   if (fareBand) {
+    const nonFormula = nonFormulaModeContext(next.modes);
+    const fareNote = nonFormula
+      ? `Tinantiya mula sa ${FARE_SOURCE}. ${nonFormula}`
+      : `Tinantiya mula sa ${FARE_SOURCE}`;
     next = {
       ...next,
       fare_range: { min: fareBand.min, max: fareBand.max, currency: "PHP" },
       fare_notes: next.fare_notes
-        ? `${next.fare_notes} · Tinantiya mula sa ${FARE_SOURCE}`
-        : `Tinantiya mula sa ${FARE_SOURCE}`,
+        ? `${next.fare_notes} · ${fareNote}`
+        : fareNote,
     };
   }
   return { ...answer, category_specific: next };

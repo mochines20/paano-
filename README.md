@@ -107,8 +107,11 @@ supabase/schema.sql   Tables para sa question logs (+ future feedback/routes)
   placeholder files na WALANG laman — wala pang usable na public provincial
   feed; handa na ang infrastructure, kulang ang data.
 - **Fares**: LTFRB fare formula bilang configurable constants sa
-  `lib/commute/fares.ts` (epektibo 2026-03-19): modern jeepney ₱17 (unang 1km)
-  + ₱2.30/km; ordinary bus ₱15 (unang 5km) + ₱2.49/km. Source: ltfrb.gov.ph.
+  `lib/commute/fares.ts` (current rates — SUSPENDED ang March 2026 hike):
+  traditional jeepney ₱13 (unang 4km) + ₱1.80/km; modern jeepney ₱15 (unang 4km)
+  + ₱2.20/km; ordinary bus ₱13 (unang 5km) + ₱2.25/km; aircon bus ₱15 (unang 5km)
+  + ₱2.65/km. Source: ltfrb.gov.ph. P2P, UV Express, at tricycle ay non-formula
+  (fixed route fares / LGU-set).
 - Ang grounding (`lib/commute/ground.ts`) ay nag-a-append ng GTFS route names +
   LTFRB fare estimate sa user message bago tawagin ang LLM, at ino-override ang
   `fare_range`/`route_names` ng sagot gamit ang datos — laging may citation at
