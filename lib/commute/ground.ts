@@ -5,6 +5,7 @@ import {
   estimateRouteKm,
 } from "@/lib/commute/gtfs";
 import { estimateFareBand, estimateFareBandForModes, FARE_SOURCE, nonFormulaModeContext } from "@/lib/commute/fares";
+import { buildTerminalContext } from "@/lib/commute/terminals";
 import type { PaanoAnswer } from "@/lib/answers";
 
 /**
@@ -107,40 +108,56 @@ export async function groundCommuteQuestion(
   try {
     if (!isCommuteQuestion(question)) return null;
 
-    const index = await loadGtfs();
-    if (!index) return null;
-
     const { origin, dest } = extractPlaces(question);
     if (!origin && !dest) return null;
 
-    const routes =
-      origin && dest
-        ? findRoutesBetween(index, origin, dest)
-        : dest
-          ? findRoutesTo(index, dest)
-          : [];
-    const km = origin && dest ? estimateRouteKm(index, origin, dest) : null;
-    const fareBand = km !== null ? estimateFareBand(km) : null;
-
-    const routeNames = [...new Set(routes.slice(0, 5).map((r) => r.displayName))].slice(0, 3);
-    if (routeNames.length === 0 && !km) return null;
-
     const parts: string[] = [];
-    parts.push("[Commute data reference — gamitin ito kung tugma sa tanong:");
-    if (routeNames.length > 0) {
-      parts.push(`candidate routes: ${routeNames.join("; ")}`);
+    let routeNames: string[] = [];
+    let km: number | null = null;
+    let fareBand: { min: number; max: number } | null = null;
+
+    // ── 1. Terminal route data (PRIORITY — real routes, real fares) ──
+    if (origin && dest) {
+      const terminalContext = buildTerminalContext(origin, dest);
+      if (terminalContext) {
+        parts.push(terminalContext);
+      }
     }
-    if (km !== null) {
-      parts.push(`estimated distance: ~${km} km`);
-      if (fareBand) {
+
+    // ── 2. GTFS data (supplement — route names, distance) ──
+    const index = await loadGtfs();
+    if (index) {
+      const routes =
+        origin && dest
+          ? findRoutesBetween(index, origin, dest)
+          : dest
+            ? findRoutesTo(index, dest)
+            : [];
+      km = origin && dest ? estimateRouteKm(index, origin, dest) : null;
+      fareBand = km !== null ? estimateFareBand(km) : null;
+
+      routeNames = [...new Set(routes.slice(0, 5).map((r) => r.displayName))].slice(0, 3);
+
+      if (routeNames.length > 0 || km) {
+        parts.push("[Commute data reference — gamitin ito kung tugma sa tanong:");
+        if (routeNames.length > 0) {
+          parts.push(`candidate routes: ${routeNames.join("; ")}`);
+        }
+        if (km !== null) {
+          parts.push(`estimated distance: ~${km} km`);
+          if (fareBand) {
+            parts.push(
+              `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max} (trad jeepney ₱13 + ₱1.80/km, modern jeepney ₱15 + ₱2.20/km, ordinary bus ₱13 + ₱2.25/km, aircon bus ₱15 + ₱2.65/km)`,
+            );
+          }
+        }
         parts.push(
-          `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max} (trad jeepney ₱13 + ₱1.80/km, modern jeepney ₱15 + ₱2.20/km, ordinary bus ₱13 + ₱2.25/km, aircon bus ₱15 + ₱2.65/km)`,
+          `Source: ${FARE_SOURCE} Huwag mag-imbento ng ibang ruta o presyo; kung hindi tugma ang data, sabihin na tantiya lang ang sagot.]`,
         );
       }
     }
-    parts.push(
-      `Source: ${FARE_SOURCE} Huwag mag-imbento ng ibang ruta o presyo; kung hindi tugma ang data, sabihin na tantiya lang ang sagot.]`,
-    );
+
+    if (parts.length === 0) return null;
 
     return { context: parts.join(" "), routes: routeNames, km, fareBand };
   } catch {
