@@ -32,6 +32,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="fil"
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('paano:theme');if(t==='light'){document.documentElement.classList.remove('dark');}}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[#050507] text-zinc-100">
         <PwaRegister />
         <Header />

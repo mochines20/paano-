@@ -52,6 +52,15 @@ export const DISHES: Dish[] = [
   { name: "Sinampalukang Manok", keyIngredients: ["manok", "sampalok", "luya", "kangkong", "sili"] },
   { name: "Fried Rice (Sinangag)", keyIngredients: ["kanin", "bawang", "itlog"] },
   { name: "Itlog na Maalat at Kamatis", keyIngredients: ["itlog", "kamatis", "sibuyas"] },
+
+  // ── Regional dishes ──────────────────────────────────────────────
+  { name: "Pochero", keyIngredients: ["baka", "baboy", "sibuyas", "kamatis", "saging na saba", "patatas", "carrot", "repolyo", "garbanzos"], notes: "Stewed tomato-based dish with meat, saba banana, and vegetables. Region: Bicol / Cebu (puchero). Simmer until tender." },
+  { name: "Humba", keyIngredients: ["baboy", "toyo", "suka", "asin", "asukal", "bawang", "laurel", "tausi"], notes: "Braised pork belly in soy sauce, vinegar, sugar, and black beans (tausi). Region: Visayas / Mindanao. Slow-cook until sauce thickens." },
+
+  // ── Budget meals under ₱100 ──────────────────────────────────────
+  { name: "Sardinas with Gata", keyIngredients: ["sardinas", "gata", "sili", "bawang", "sibuyas"], notes: "Canned sardines simmered in coconut milk with chili and aromatics. Budget-friendly: canned sardinas + gata powder. Serve with hot rice." },
+  { name: "Tokwa't Baboy", keyIngredients: ["tokwa", "baboy", "toyo", "suka", "bawang", "sibuyas", "sili"], notes: "Fried tofu and pork belly pieces tossed in soy-vinegar dip. Budget-friendly: cheap tokwa, small amount of pork. Common side for congee or as pulutan." },
+  { name: "Adobong Kangkong", keyIngredients: ["kangkong", "toyo", "suka", "bawang", "sili"], notes: "Water spinach sautéed adobo-style in soy sauce and vinegar. Budget-friendly: kangkong is very cheap. Quick stir-fry, do not overcook." },
 ];
 
 /** Hanapin ang mga ulam na may pinakamaraming tugmang sangkap. */

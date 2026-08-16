@@ -68,6 +68,38 @@ export const FARE_RULES: FareRule[] = [
     perKm: 2.2,
     note: "Provincial matrix — i-verify sa operator",
   },
+  {
+    mode: "bus",
+    label: "Provincial bus (aircon)",
+    base: 16,
+    baseKm: 5,
+    perKm: 2.65,
+    note: "Provincial aircon — i-verify sa operator",
+  },
+  {
+    mode: "p2p",
+    label: "P2P bus (point-to-point, aircon)",
+    base: 50,
+    baseKm: 5,
+    perKm: 3.5,
+    note: "Premium express bus — walang stop, may WiFi. Presyo ay may range depende sa route.",
+  },
+  {
+    mode: "uv",
+    label: "UV Express",
+    base: 25,
+    baseKm: 4,
+    perKm: 2.5,
+    note: "Shared van — depende sa route at lulan. Sagot lang kung sakto.",
+  },
+  {
+    mode: "tricycle",
+    label: "Tricycle (per ride)",
+    base: 20,
+    baseKm: 1,
+    perKm: 10,
+    note: "Presyo ay depende sa barangay fare matrix — mag-ask sa driver bago sumakay.",
+  },
 ];
 
 /**
@@ -99,5 +131,5 @@ export function estimateFareBandForModes(
 
 /** Band ng fare para sa parehong jeepney at bus (compatibility helper). */
 export function estimateFareBand(km: number): { min: number; max: number } | null {
-  return estimateFareBandForModes(km, ["jeepney", "bus"]);
+  return estimateFareBandForModes(km, ["jeepney", "bus", "p2p", "uv", "tricycle"]);
 }

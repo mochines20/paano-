@@ -40,6 +40,11 @@ const INTENT_KEYWORDS = [
   "trangkahe",
   "biyahe",
   "byahe",
+  "p2p",
+  "uv express",
+  "uv express",
+  "van",
+  "terminal",
 ];
 
 export function isCommuteQuestion(question: string): boolean {

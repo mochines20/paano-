@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { answerHash } from "@/lib/feedback";
 import { answerToText } from "@/lib/answers";
 import type { PaanoAnswer } from "@/lib/answers";
+import { saveAnswer, unsaveAnswer, isSaved as checkSaved, getSavedAnswers } from "@/lib/storage";
+import { shareText } from "@/lib/share";
 
 /**
  * AnswerCard — structured answer display, ibang layout per category.
@@ -39,10 +41,12 @@ const CONFIDENCE_LABEL: Record<PaanoAnswer["confidence"], string> = {
   low: "Hindi sigurado — magtanong sa opisyal na source",
 };
 
-export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
+export function AnswerCard({ answer, question }: { answer: PaanoAnswer; question?: string }) {
   const meta = CATEGORY_META[answer.category];
   const spec = answer.category_specific;
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(() => (question ? checkSaved(question) : false));
+  const [shared, setShared] = useState(false);
   const [vote, setVote] = useState<boolean | null>(null);
   const [correction, setCorrection] = useState("");
   const [showCorrection, setShowCorrection] = useState(false);
@@ -71,6 +75,32 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
       setTimeout(() => setCopied(false), 1800);
     } catch {
       /* hindi available ang clipboard — huwag mag-crash */
+    }
+  }
+
+  function toggleSave() {
+    if (!question) return;
+    if (saved) {
+      const items = getSavedAnswers().filter((s) => s.question === question);
+      items.forEach((s) => unsaveAnswer(s.id));
+      setSaved(false);
+    } else {
+      saveAnswer({
+        question,
+        answer,
+        category: answer.category,
+        title: answer.title,
+      });
+      setSaved(true);
+    }
+  }
+
+  async function shareAnswer() {
+    const text = `PAANO — ${answer.title}\n\n${answerToText(answer)}\n\n— via PAANO`;
+    const result = await shareText(answer.title, text);
+    if (result === "copied") {
+      setShared(true);
+      setTimeout(() => setShared(false), 1800);
     }
   }
 
@@ -119,23 +149,60 @@ export function AnswerCard({ answer }: { answer: PaanoAnswer }) {
           </div>
           <div className="flex shrink-0 flex-row items-center gap-1.5 sm:flex-col sm:items-end">
             <ConfidenceBadge confidence={answer.confidence} />
-            <button
-              onClick={() => void copyAnswer()}
-              title="Kopyahin ang sagot"
-              aria-label="Kopyahin ang sagot"
-              className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-1 text-[10px] font-medium text-zinc-400 transition-all duration-150 hover:bg-zinc-700 hover:text-zinc-200 active:scale-95 focus-ring"
-            >
-              {copied ? (
-                <>
-                  <svg className="h-3 w-3 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => void copyAnswer()}
+                title="Kopyahin ang sagot"
+                aria-label="Kopyahin ang sagot"
+                className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-1 text-[10px] font-medium text-zinc-400 transition-all duration-150 hover:bg-zinc-700 hover:text-zinc-200 active:scale-95 focus-ring"
+              >
+                {copied ? (
+                  <>
+                    <svg className="h-3 w-3 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path className="check-draw" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Kopyado!
+                  </>
+                ) : (
+                  "Kopyahin"
+                )}
+              </button>
+              {question && (
+                <button
+                  onClick={toggleSave}
+                  title={saved ? "Alisin sa saved" : "I-save ang sagot"}
+                  aria-label={saved ? "Alisin sa saved" : "I-save ang sagot"}
+                  className={`inline-flex items-center justify-center rounded-full p-1.5 transition-all duration-150 active:scale-95 focus-ring ${
+                    saved
+                      ? "bg-orange-500/20 text-orange-300"
+                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                  }`}
+                >
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={() => void shareAnswer()}
+                title="I-share ang sagot"
+                aria-label="I-share ang sagot"
+                className="inline-flex items-center justify-center rounded-full bg-zinc-800 p-1.5 text-zinc-400 transition-all duration-150 hover:bg-zinc-700 hover:text-zinc-200 active:scale-95 focus-ring"
+              >
+                {shared ? (
+                  <svg className="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path className="check-draw" d="M5 13l4 4L19 7" />
                   </svg>
-                  Kopyado!
-                </>
-              ) : (
-                "Kopyahin"
-              )}
-            </button>
+                ) : (
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </header>
 

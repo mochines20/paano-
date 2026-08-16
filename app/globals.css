@@ -48,6 +48,82 @@
   --shadow-glow: 0 0 32px var(--accent-glow);
 }
 
+/* Light theme — naka-activate kapag walang .dark class sa <html> */
+:root:not(.dark) {
+  --background: #fafaf9;
+  --foreground: #18181b;
+  --surface: #ffffff;
+  --surface-raised: #f4f4f5;
+  --surface-elevated: #e4e4e7;
+  --border: #d4d4d8;
+  --border-strong: #a1a1aa;
+  --muted: #52525b;
+
+  --accent-glow: rgba(249, 115, 22, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Light mode overrides para sa hardcoded zinc colors */
+:root:not(.dark) body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+:root:not(.dark) .bg-zinc-900\/70,
+:root:not(.dark) .bg-zinc-900\/60,
+:root:not(.dark) .bg-zinc-900\/50,
+:root:not(.dark) .bg-zinc-900\/40,
+:root:not(.dark) .bg-zinc-900\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+:root:not(.dark) .bg-zinc-900,
+:root:not(.dark) .bg-\[\#050507\] {
+  background-color: var(--surface) !important;
+}
+
+:root:not(.dark) .bg-\[\#050507\]\/95 {
+  background-color: rgba(250, 250, 249, 0.95) !important;
+}
+
+:root:not(.dark) .bg-zinc-800 {
+  background-color: var(--surface-elevated) !important;
+}
+
+:root:not(.dark) .bg-zinc-950 {
+  background-color: #18181b !important;
+}
+
+:root:not(.dark) .text-white {
+  color: var(--foreground) !important;
+}
+
+:root:not(.dark) .text-zinc-100,
+:root:not(.dark) .text-zinc-200,
+:root:not(.dark) .text-zinc-300 {
+  color: #3f3f46 !important;
+}
+
+:root:not(.dark) .text-zinc-400,
+:root:not(.dark) .text-zinc-500 {
+  color: var(--muted) !important;
+}
+
+:root:not(.dark) .text-zinc-600 {
+  color: #71717a !important;
+}
+
+:root:not(.dark) .border-zinc-800,
+:root:not(.dark) .border-zinc-900 {
+  border-color: var(--border) !important;
+}
+
+:root:not(.dark) .border-zinc-700 {
+  border-color: var(--border-strong) !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -1,6 +1,6 @@
-/* PAANO service worker — app shell cache para sa PWA (offline basics). */
-const CACHE = "paano-v1";
-const APP_SHELL = ["/", "/paano"];
+/* PAANO service worker — app shell + runtime cache para sa PWA offline. */
+const CACHE = "paano-v2";
+const APP_SHELL = ["/", "/paano", "/manifest.webmanifest", "/bot-avatar.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -22,21 +22,41 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  // API at ibang origin: network-only (huwag i-cache ang data).
-  if (url.pathname.startsWith("/api/") || url.origin !== self.location.origin) return;
 
-  // Static assets at pages: cache-first, network fallback.
-  event.respondWith(
-    caches.match(event.request).then(
-      (cached) =>
-        cached ||
-        fetch(event.request).then((response) => {
-          if (response.ok && (url.pathname.startsWith("/_next/") || event.request.method === "GET")) {
-            const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        }),
-    ),
-  );
+  // API at ibang origin: network-first, may offline fallback.
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        new Response(
+          JSON.stringify({
+            answer: null,
+            error: "Offline — walang koneksyon. Subukan kapag online ka na.",
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+    return;
+  }
+
+  // Ibang origin (fonts, etc): network-only.
+  if (url.origin !== self.location.origin) return;
+
+  // Static assets at pages: stale-while-revalidate.
+  if (event.request.method === "GET") {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        const networkFetch = fetch(event.request)
+          .then((response) => {
+            if (response.ok) {
+              const copy = response.clone();
+              caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+            }
+            return response;
+          })
+          .catch(() => cached);
+        return cached || networkFetch;
+      }),
+    );
+  }
 });
