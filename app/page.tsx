@@ -1,51 +1,6 @@
 import { AskInput } from "@/components/AskInput";
 import { StickyAsk } from "@/components/StickyAsk";
-import {
-  IconCommute,
-  IconCooking,
-  IconDiy,
-  IconFirstAid,
-  IconDocs,
-} from "@/components/icons";
-import type { ComponentType } from "react";
-
-const FEATURES: {
-  key: string;
-  icon: ComponentType<{ className?: string }>;
-  title: string;
-  text: string;
-}[] = [
-  {
-    key: "commute",
-    icon: IconCommute,
-    title: "Commute",
-    text: "Jeep, bus, LRT — ruta, pamasahe, at oras na alam ng lokal.",
-  },
-  {
-    key: "cooking",
-    icon: IconCooking,
-    title: "Lutong Bahay",
-    text: "Recipe mula sa palengke, may scaling para sa 10 tao.",
-  },
-  {
-    key: "diy",
-    icon: IconDiy,
-    title: "Gawa-Bahay",
-    text: "Tumutulong gripo, stained na damit — hakbang-hakbang.",
-  },
-  {
-    key: "first_aid",
-    icon: IconFirstAid,
-    title: "First Aid",
-    text: "Household scenarios lang, may “pumunta sa doktor” threshold.",
-  },
-  {
-    key: "docs",
-    icon: IconDocs,
-    title: "Docs Guide",
-    text: "Requirements at fees sa Taglish, link sa opisyal na site.",
-  },
-];
+import { HomeFeatures } from "@/components/HomeFeatures";
 
 const TRUST_PILLS = [
   "Scoped, hindi trivia",
@@ -138,24 +93,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Feature cards — glassmorphism, responsive: 2 cols mobile, 3 cols sm, 5 cols md+ */}
-      <section className="relative z-10 mx-auto max-w-3xl px-4 pb-16 sm:pb-20">
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-5">
-          {FEATURES.map((f, i) => (
-            <article
-              key={f.key}
-              className="glass-card group animate-fade-up flex flex-col gap-2 p-3 transition-all duration-200 hover:-translate-y-1 hover:border-[#FBE77A]/40 hover:shadow-lg hover:shadow-[#FBE77A]/10 sm:gap-3 sm:p-4"
-              style={{ animationDelay: `${280 + i * 70}ms` }}
-            >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 backdrop-blur transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3 sm:h-10 sm:w-10">
-                <f.icon className="h-5 w-5 text-[#FBE77A]" />
-              </span>
-              <h2 className="text-xs font-bold text-zinc-100 sm:text-sm">{f.title}</h2>
-              <p className="text-[11px] leading-relaxed text-slate-400 sm:text-xs">{f.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      {/* Interactive features: trending chips + clickable category cards + commute form */}
+      <HomeFeatures />
     </main>
   );
 }

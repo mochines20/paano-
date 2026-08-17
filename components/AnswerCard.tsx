@@ -159,8 +159,13 @@ export function AnswerCard({
   }
 
   async function shareAnswer() {
-    const text = `PAANO — ${answer.title}\n\n${answerToText(answer)}\n\n— via PAANO (https://paano.ph)`;
-    const result = await shareText(answer.title, text);
+    const text = `PAANO — ${answer.title}\n\n${answerToText(answer)}`;
+    // Generate shareable URL — /paano?q=<question> auto-asks sa pagbukas
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://paano.ph";
+    const shareUrl = question
+      ? `${origin}/paano?q=${encodeURIComponent(question)}`
+      : origin;
+    const result = await shareText(answer.title, text, shareUrl);
     if (result === "copied") {
       setShared(true);
       showToast("Na-copy ang link para ma-share!");
