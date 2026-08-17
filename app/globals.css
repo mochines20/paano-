@@ -278,6 +278,23 @@ body {
   }
 }
 
+@keyframes wave-bar {
+  0%, 100% {
+    height: 4px;
+    opacity: 0.4;
+  }
+  50% {
+    height: 18px;
+    opacity: 1;
+  }
+}
+
+.animate-wave-1 { animation: wave-bar 0.7s ease-in-out infinite 0ms; }
+.animate-wave-2 { animation: wave-bar 0.7s ease-in-out infinite 140ms; }
+.animate-wave-3 { animation: wave-bar 0.7s ease-in-out infinite 280ms; }
+.animate-wave-4 { animation: wave-bar 0.7s ease-in-out infinite 420ms; }
+.animate-wave-5 { animation: wave-bar 0.7s ease-in-out infinite 200ms; }
+
 .animate-fade-up {
   animation: fade-up 0.45s var(--ease-out-soft) both;
 }

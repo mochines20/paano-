@@ -98,7 +98,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
   const [trending, setTrending] = useState<string[]>([]);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [showJump, setShowJump] = useState(false);
-  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
+  const [isOnline, setIsOnline] = useState(true);
   const [tab, setTab] = useState<"chat" | "saved" | "history">("chat");
   const [savedAnswers, setSavedAnswers] = useState<SavedAnswer[]>(() => getSavedAnswers());
   const [history, setHistory] = useState<HistoryItem[]>(() => getHistory());
@@ -109,15 +109,16 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
   const pinnedRef = useRef(true);
   const { listening, supported: voiceSupported, startListening, stopListening } = useVoiceInput();
 
-  // Online/offline detection
+  // Online/offline detection — i-check sa mount at sa events
   useEffect(() => {
-    const on = () => setIsOnline(true);
-    const off = () => setIsOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
+    const update = () => setIsOnline(navigator.onLine);
+    // Initial check sa microtask para hindi cascading render warning
+    Promise.resolve().then(update);
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
     return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
     };
   }, []);
 
@@ -604,6 +605,26 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           onSubmit={onSubmit}
           className="border-t border-zinc-900 bg-[#050507]/95 p-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:p-3"
         >
+          {/* Active Voice Waveform Visualizer */}
+          {listening && (
+            <div className="animate-slide-down mx-auto mb-2.5 flex max-w-2xl items-center justify-between rounded-2xl border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-xs font-semibold text-orange-300">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
+                </span>
+                <span>Nakikinig si PAANO… Sabihin ang iyong tanong</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="animate-wave-1 w-1 rounded-full bg-orange-400" />
+                <span className="animate-wave-2 w-1 rounded-full bg-orange-400" />
+                <span className="animate-wave-3 w-1 rounded-full bg-orange-400" />
+                <span className="animate-wave-4 w-1 rounded-full bg-orange-400" />
+                <span className="animate-wave-5 w-1 rounded-full bg-orange-400" />
+              </div>
+            </div>
+          )}
+
           <div className="mx-auto flex max-w-2xl items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/80 p-1.5 pl-3.5 shadow-md shadow-black/30 backdrop-blur focus-within:border-orange-500/60 focus-within:ring-1 focus-within:ring-orange-500/20 sm:gap-2 sm:pl-4">
             <input
               value={input}

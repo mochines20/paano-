@@ -2,11 +2,17 @@
  * Curated terminal & route database — REAL routes, fares, at schedules
  * mula sa mga grand terminals sa Metro Manila.
  *
- * Source: pitx.ph, ph.commutetour.com, escapemanila.com (verified Aug 2026)
+ * Terminals Covered:
+ * - One Ayala Terminal (Makati)
+ * - VTX / Starmall Alabang Terminal (Muntinlupa)
+ * - Parañaque Integrated Terminal Exchange (PITX)
+ * - Market! Market! & BGC Terminal (Taguig)
+ * - Trinoma / SM North EDSA P2P Hub (Quezon City)
+ * - Araneta City Cubao Bus Port (Quezon City)
+ * - Gil Puyat / Buendia Bus Hub (Pasay/Makati)
+ * - EDSA Carousel Stations
  *
- * Ito ang nag-a-address ng problema kung saan nag-i-invent ang LLM ng
- * mga route (hal. jeep → LRT → MRT) imbes na gamitin ang totoong
- * direct bus routes mula sa terminals.
+ * Source: pitx.ph, oneayala.com, ph.commutetour.com, escapemanila.com (verified Aug 2026)
  */
 
 export interface TerminalRoute {
@@ -43,137 +49,98 @@ export interface Terminal {
   routes: TerminalRoute[];
 }
 
-/**
- * Mga pangunahing terminal sa Metro Manila at kanilang routes.
- * Ang fares ay FIXED per route — hindi per-km formula.
- */
 export const TERMINALS: Terminal[] = [
   {
-    id: "pitx",
-    name: "Parañaque Integrated Terminal Exchange",
-    shortName: "PITX",
-    location: "Parañaque City (coastal road, near NAIA)",
+    id: "one-ayala",
+    name: "One Ayala Terminal",
+    shortName: "One Ayala",
+    location: "Ayala Avenue cor EDSA, Makati City (connected to MRT-3 Ayala)",
     routes: [
       {
-        origin: "PITX",
-        destination: "BGC (Uptown)",
-        operator: "Green Frog Hybrid Bus",
-        mode: "bus",
-        fare: 40,
-        schedule: "5:30 AM - 10:00 PM (weekday), 6:30 AM - 10:00 AM + 4:00 PM - 10:00 PM (Sat)",
-        via: "via Buendia, Makati",
-        travelTimeMin: 45,
-        travelTimeMax: 90,
-        payment: "Cash/Beep",
-        notes: "Gate 8 sa ground floor. Direct bus, walang transfer.",
-      },
-      {
-        origin: "PITX",
-        destination: "BGC (Kalayaan/Circuit Makati)",
-        operator: "P2P Bus",
+        origin: "One Ayala",
+        destination: "Alabang (VTX / Starmall)",
+        operator: "RRCG P2P / City Bus",
         mode: "p2p",
-        fare: 45,
-        schedule: "9:30 AM - 9:00 PM (hourly)",
-        via: "via Buendia",
-        travelTimeMin: 40,
-        travelTimeMax: 80,
-        notes: "Stops: Kalayaan Stop 1, Landmark Stop 2, Circuit Makati",
+        fare: 60,
+        schedule: "5:30 AM - 10:00 PM (daily, every 15-20 min)",
+        via: "via SLEX / Skyway",
+        travelTimeMin: 35,
+        travelTimeMax: 70,
+        payment: "Beep / Tripko / Cash",
+        notes: "Lower Level (Basement 1). Direct SLEX Express papuntang Alabang.",
       },
       {
-        origin: "PITX",
-        destination: "Alabang (Starmall/VTX)",
-        operator: "Multiple (ATSC, Funride)",
+        origin: "One Ayala",
+        destination: "BGC (Market Market / Uptown)",
+        operator: "BGC Bus (Telus Ayala Terminal)",
         mode: "bus",
-        fare: 46,
-        schedule: "4:00 AM - 9:00 PM",
-        via: "via Coastal Road / CAVITEX",
-        travelTimeMin: 45,
-        travelTimeMax: 90,
-        notes: "Gate 7. Dumadaan sa SM Southmall, Starmall Las Piñas, Zapote.",
+        fare: 15,
+        schedule: "5:00 AM - 12:00 AM",
+        via: "via McKinley Road / 5th Ave",
+        travelTimeMin: 15,
+        travelTimeMax: 30,
+        payment: "Beep RFID card only",
+        notes: "Terminal sa tapat ng One Ayala (McKinley Exchange). East, West, at North Express routes.",
       },
       {
-        origin: "PITX",
-        destination: "Ayala (MRT)",
+        origin: "One Ayala",
+        destination: "Nuvali / Santa Rosa, Laguna",
+        operator: "TAS Trans P2P",
+        mode: "p2p",
+        fare: 190,
+        schedule: "6:00 AM - 9:00 PM",
+        via: "via SLEX / CALAX",
+        travelTimeMin: 60,
+        travelTimeMax: 110,
+        payment: "Beep / Cash",
+        notes: "Direct P2P sa Nuvali Solenad / Balibago.",
+      },
+      {
+        origin: "One Ayala",
+        destination: "Pacita / San Pedro, Laguna",
+        operator: "City Bus",
+        mode: "bus",
+        fare: 65,
+        schedule: "5:00 AM - 10:00 PM",
+        via: "via SLEX / Susana Heights",
+        travelTimeMin: 45,
+        travelTimeMax: 85,
+      },
+      {
+        origin: "One Ayala",
+        destination: "Antipolo / Masinag",
+        operator: "P2P / UV Express",
+        mode: "p2p",
+        fare: 80,
+        schedule: "6:00 AM - 9:00 PM",
+        via: "via C5 / Marcos Highway",
+        travelTimeMin: 50,
+        travelTimeMax: 100,
+      },
+      {
+        origin: "One Ayala",
+        destination: "PITX",
         operator: "EDSA Carousel",
         mode: "bus",
         fare: 17,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway",
-        travelTimeMin: 30,
-        travelTimeMax: 60,
-        payment: "Beep RFID",
-        notes: "Gate 10. EDSA Carousel — walang stop sa traffic, dedicated busway.",
-      },
-      {
-        origin: "PITX",
-        destination: "Buendia (Gil Puyat)",
-        operator: "EDSA Carousel",
-        mode: "bus",
-        fare: 26,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway",
-        travelTimeMin: 25,
-        travelTimeMax: 50,
-        payment: "Beep RFID",
-      },
-      {
-        origin: "PITX",
-        destination: "Cubao",
-        operator: "EDSA Carousel",
-        mode: "bus",
-        fare: 46,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway",
-        travelTimeMin: 50,
-        travelTimeMax: 100,
-        payment: "Beep RFID",
-      },
-      {
-        origin: "PITX",
-        destination: "Monumento",
-        operator: "EDSA Carousel",
-        mode: "bus",
-        fare: 76,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway (full length)",
-        travelTimeMin: 80,
-        travelTimeMax: 150,
-        payment: "Beep RFID",
-      },
-      {
-        origin: "PITX",
-        destination: "NAIA Terminal 1/2/3/4",
-        operator: "UBE Express",
-        mode: "bus",
-        fare: 40,
-        schedule: "6:00 AM - 9:30 PM (multiple trips)",
-        via: "via Airport Road",
+        schedule: "24 Hours (EDSA Busway)",
+        via: "via EDSA / Roxas Blvd",
         travelTimeMin: 20,
-        travelTimeMax: 40,
-        notes: "P2P airport bus. May specific schedule per terminal.",
+        travelTimeMax: 45,
+        payment: "Beep / Cash",
+        notes: "Ground floor EDSA Busway bay.",
       },
       {
-        origin: "PITX",
-        destination: "SM Mall of Asia",
-        operator: "Green Frog / City Bus",
+        origin: "One Ayala",
+        destination: "Trinoma / SM North EDSA",
+        operator: "EDSA Carousel / MRT-3",
         mode: "bus",
-        fare: 25,
-        schedule: "5:30 AM - 8:00 PM",
-        via: "via Macapagal Blvd",
-        travelTimeMin: 20,
-        travelTimeMax: 40,
-      },
-      {
-        origin: "PITX",
-        destination: "Quezon Avenue",
-        operator: "EDSA Carousel / City Bus",
-        mode: "bus",
-        fare: 57,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway",
-        travelTimeMin: 60,
-        travelTimeMax: 120,
-        payment: "Beep RFID",
+        fare: 35,
+        schedule: "4:00 AM - 11:00 PM",
+        via: "via EDSA Dedicated Busway",
+        travelTimeMin: 40,
+        travelTimeMax: 75,
+        payment: "Beep / Cash",
       },
     ],
   },
@@ -181,110 +148,198 @@ export const TERMINALS: Terminal[] = [
     id: "vtx-alabang",
     name: "VTX Starmall Alabang Terminal",
     shortName: "VTX Alabang",
-    location: "Festival Mall / Starmall Alabang, Muntinlupa",
+    location: "Starmall / Festival Mall, Alabang, Muntinlupa",
     routes: [
+      {
+        origin: "VTX Alabang",
+        destination: "One Ayala / Makati",
+        operator: "RRCG P2P / City Bus",
+        mode: "p2p",
+        fare: 60,
+        schedule: "5:00 AM - 9:30 PM (every 15-20 min)",
+        via: "via SLEX / Skyway Direct",
+        travelTimeMin: 35,
+        travelTimeMax: 70,
+        payment: "Beep / Tripko / Cash",
+        notes: "Northgate commuters: Sumakay ng e-jeep/tricycle mula Northgate Plaza papuntang VTX/Starmall (₱12–₱15, 5 min) bago sumakay ng P2P.",
+      },
       {
         origin: "VTX Alabang",
         destination: "BGC (Market Market)",
         operator: "HM Transport / HM Worthy",
         mode: "p2p",
         fare: 52,
-        schedule: "6:00 AM - 8:00 PM (weekday), 6:00 AM - 7:00 PM (Sat)",
-        via: "via SLEX, C5 Road",
+        schedule: "6:00 AM - 8:00 PM (Mon-Sat)",
+        via: "via SLEX, C5 Road (Pinagsama, Diego Silang, Upper McKinley)",
         travelTimeMin: 45,
         travelTimeMax: 90,
         payment: "TRIPKO RFID Card",
-        notes: "Direct P2P bus. Stops: Pinagsama, Diego Silang, Upper McKinley, Market Market.",
+        notes: "Northgate commuters: Sakay ng e-jeep sa Northgate papuntang VTX/Starmall, tapos direct P2P bus sa Market Market.",
       },
       {
         origin: "VTX Alabang",
         destination: "PITX",
-        operator: "Multiple (Funride, ATSC)",
+        operator: "Funride / ATSC Bus",
         mode: "bus",
         fare: 46,
         schedule: "4:00 AM - 9:00 PM",
-        via: "via Coastal Road / CAVITEX",
+        via: "via Alabang-Zapote Rd, CAVITEX, Coastal",
         travelTimeMin: 45,
         travelTimeMax: 90,
         notes: "Dumadaan sa SM Southmall, Starmall Las Piñas, Zapote.",
       },
       {
         origin: "VTX Alabang",
-        destination: "Ayala / Makati",
+        destination: "EDSA Shaw / Megamall",
         operator: "RRCG P2P",
         mode: "p2p",
-        fare: 60,
-        schedule: "5:30 AM - 7:30 PM",
-        via: "via SLEX / EDSA",
-        travelTimeMin: 40,
-        travelTimeMax: 80,
-        notes: "P2P bus, walang stop. Direct sa Glorietta/Ayala.",
-      },
-      {
-        origin: "VTX Alabang",
-        destination: "EDSA Shaw",
-        operator: "RRCG P2P",
-        mode: "p2p",
-        fare: 55,
-        schedule: "6:00 AM - 6:00 PM",
-        via: "via SLEX / EDSA",
-        travelTimeMin: 40,
-        travelTimeMax: 75,
+        fare: 65,
+        schedule: "6:00 AM - 7:00 PM",
+        via: "via SLEX / C5 / EDSA",
+        travelTimeMin: 45,
+        travelTimeMax: 85,
       },
       {
         origin: "VTX Alabang",
         destination: "Calamba, Laguna",
         operator: "Calamba P2P / St Rose",
         mode: "p2p",
-        fare: 195,
-        schedule: "6:00 AM - 9:00 PM (selected trips)",
+        fare: 100,
+        schedule: "6:00 AM - 9:00 PM",
         via: "via SLEX",
-        travelTimeMin: 90,
-        travelTimeMax: 150,
+        travelTimeMin: 50,
+        travelTimeMax: 90,
       },
       {
         origin: "VTX Alabang",
-        destination: "Batangas City",
-        operator: "Jam Liner / Alps",
+        destination: "Batangas Grand Terminal",
+        operator: "Jam Liner / Alps Bus",
         mode: "bus",
-        fare: 250,
+        fare: 210,
         schedule: "5:00 AM - 9:00 PM",
         via: "via SLEX / STAR Tollway",
-        travelTimeMin: 120,
-        travelTimeMax: 180,
+        travelTimeMin: 90,
+        travelTimeMax: 150,
+      },
+    ],
+  },
+  {
+    id: "pitx",
+    name: "Parañaque Integrated Terminal Exchange",
+    shortName: "PITX",
+    location: "Parañaque City (near NAIA / Macapagal Blvd)",
+    routes: [
+      {
+        origin: "PITX",
+        destination: "BGC (Uptown / Kalayaan)",
+        operator: "Green Frog Hybrid Bus / City Express",
+        mode: "bus",
+        fare: 40,
+        schedule: "5:30 AM - 10:00 PM",
+        via: "via Buendia / Kalayaan Ave",
+        travelTimeMin: 45,
+        travelTimeMax: 90,
+        notes: "Gate 8 (Ground Floor). Direct bus papuntang Uptown Mall BGC.",
+      },
+      {
+        origin: "PITX",
+        destination: "One Ayala / Makati",
+        operator: "EDSA Carousel",
+        mode: "bus",
+        fare: 17,
+        schedule: "24 Hours (Gate 10)",
+        via: "via EDSA Dedicated Busway",
+        travelTimeMin: 20,
+        travelTimeMax: 45,
+        payment: "Beep / Cash",
+      },
+      {
+        origin: "PITX",
+        destination: "Alabang (Starmall / VTX)",
+        operator: "ATSC / Funride",
+        mode: "bus",
+        fare: 46,
+        schedule: "4:00 AM - 9:00 PM (Gate 7)",
+        via: "via CAVITEX / Alabang-Zapote Road",
+        travelTimeMin: 45,
+        travelTimeMax: 90,
+      },
+      {
+        origin: "PITX",
+        destination: "NAIA Terminals 1, 2, 3, 4",
+        operator: "UBE Express Airport Bus",
+        mode: "p2p",
+        fare: 40,
+        schedule: "6:00 AM - 9:00 PM (every 30-45 min)",
+        via: "via NAIA Expressway / Airport Rd",
+        travelTimeMin: 15,
+        travelTimeMax: 35,
+        notes: "Direct loop sa lahat ng 4 NAIA terminals.",
+      },
+      {
+        origin: "PITX",
+        destination: "Cubao / Araneta City",
+        operator: "EDSA Carousel",
+        mode: "bus",
+        fare: 46,
+        schedule: "24 Hours (Gate 10)",
+        via: "via EDSA Busway (Main Ave / Nepa Q-Mart)",
+        travelTimeMin: 50,
+        travelTimeMax: 95,
+      },
+      {
+        origin: "PITX",
+        destination: "Monumento / Caloocan",
+        operator: "EDSA Carousel",
+        mode: "bus",
+        fare: 76,
+        schedule: "24 Hours (Gate 10)",
+        via: "via EDSA Busway (North Ave / Balintawak / Monumento)",
+        travelTimeMin: 75,
+        travelTimeMax: 140,
+      },
+      {
+        origin: "PITX",
+        destination: "Tagaytay / Mendez",
+        operator: "San Agustin / Erjohn",
+        mode: "bus",
+        fare: 120,
+        schedule: "4:00 AM - 9:00 PM (Gate 2)",
+        via: "via Emilio Aguinaldo Highway / Silang",
+        travelTimeMin: 90,
+        travelTimeMax: 160,
       },
     ],
   },
   {
     id: "bgc-terminal",
-    name: "Market Market BGC Terminal",
+    name: "Market! Market! & BGC Terminal",
     shortName: "Market Market BGC",
-    location: "Market Market mall, Bonifacio Global City, Taguig",
+    location: "Bonifacio Global City, Taguig City",
     routes: [
       {
         origin: "BGC (Market Market)",
-        destination: "Alabang (VTX/Starmall)",
-        operator: "HM Transport",
-        mode: "p2p",
-        fare: 46,
-        schedule: "7:00 AM - 7:30 PM",
-        via: "via C5 / SLEX",
-        travelTimeMin: 45,
-        travelTimeMax: 90,
-        notes: "Direct P2P bus back to Alabang.",
-      },
-      {
-        origin: "BGC (Market Market)",
-        destination: "Ayala MRT",
-        operator: "BGC Bus (East/West Route)",
+        destination: "One Ayala / MRT Ayala",
+        operator: "BGC Bus (East / West Route)",
         mode: "bus",
         fare: 15,
         schedule: "5:00 AM - 12:00 AM",
-        via: "via 5th Avenue / McKinley",
+        via: "via McKinley Road / 5th Avenue",
         travelTimeMin: 15,
         travelTimeMax: 30,
-        payment: "Beep RFID",
-        notes: "BGC Bus — East, West, at Central routes. Frequent trips.",
+        payment: "Beep Card only",
+      },
+      {
+        origin: "BGC (Market Market)",
+        destination: "Alabang (VTX / Starmall)",
+        operator: "HM Transport P2P",
+        mode: "p2p",
+        fare: 52,
+        schedule: "7:00 AM - 8:30 PM",
+        via: "via C5 Road / SLEX",
+        travelTimeMin: 45,
+        travelTimeMax: 90,
+        payment: "TRIPKO / Cash",
       },
       {
         origin: "BGC (Market Market)",
@@ -293,169 +348,207 @@ export const TERMINALS: Terminal[] = [
         mode: "bus",
         fare: 40,
         schedule: "5:30 AM - 8:00 PM",
-        via: "via C5 / Buendia",
+        via: "via C5 / Kalayaan / Buendia",
         travelTimeMin: 45,
         travelTimeMax: 90,
       },
       {
         origin: "BGC (Market Market)",
-        destination: "Antipolo",
-        operator: "Van",
+        destination: "Antipolo / Tikling",
+        operator: "UV Express / Modern Jeep",
         mode: "van",
-        fare: 60,
-        schedule: "1:00 PM - 9:00 PM",
-        via: "via C5 / Marcos Highway",
-        travelTimeMin: 60,
+        fare: 65,
+        schedule: "6:00 AM - 9:00 PM",
+        via: "via C5 / Ortigas Ave Extension",
+        travelTimeMin: 55,
+        travelTimeMax: 110,
+      },
+      {
+        origin: "BGC (Market Market)",
+        destination: "Calamba / Nuvali, Laguna",
+        operator: "Saint Rose P2P",
+        mode: "p2p",
+        fare: 195,
+        schedule: "6:00 AM - 8:30 PM",
+        via: "via C5 / SLEX",
+        travelTimeMin: 65,
         travelTimeMax: 120,
       },
+    ],
+  },
+  {
+    id: "trinoma-smnorth",
+    name: "Trinoma & SM North EDSA P2P Hub",
+    shortName: "Trinoma / SM North",
+    location: "North Avenue cor EDSA, Quezon City (MRT-3 North Ave)",
+    routes: [
       {
-        origin: "BGC (Market Market)",
-        destination: "Dasmariñas, Cavite",
-        operator: "Alabang Metrolink",
-        mode: "bus",
-        fare: 110,
-        schedule: "7:00 AM - 10:00 PM",
-        via: "via SLEX / Aguinaldo Highway",
+        origin: "Trinoma / SM North",
+        destination: "One Ayala / Makati",
+        operator: "Froehlich P2P / EDSA Carousel",
+        mode: "p2p",
+        fare: 100,
+        schedule: "5:30 AM - 8:30 PM",
+        via: "via EDSA / Skyway Stage 3",
+        travelTimeMin: 40,
+        travelTimeMax: 80,
+        notes: "Mabilis kapag P2P Skyway; o Carousel busway for ₱35.",
+      },
+      {
+        origin: "Trinoma / SM North",
+        destination: "BGC (Market Market / Uptown)",
+        operator: "Froehlich P2P",
+        mode: "p2p",
+        fare: 100,
+        schedule: "6:00 AM - 8:00 PM",
+        via: "via C5 / Kalayaan",
+        travelTimeMin: 50,
+        travelTimeMax: 95,
+      },
+      {
+        origin: "Trinoma / SM North",
+        destination: "Clark International Airport",
+        operator: "Genesis JoyBus P2P",
+        mode: "p2p",
+        fare: 350,
+        schedule: "3:00 AM - 9:00 PM (every 1-2 hrs)",
+        via: "via NLEX / SCTEX",
         travelTimeMin: 90,
         travelTimeMax: 150,
+        notes: "Direct airport express mula Trinoma P2P terminal.",
+      },
+      {
+        origin: "Trinoma / SM North",
+        destination: "PITX",
+        operator: "EDSA Carousel",
+        mode: "bus",
+        fare: 60,
+        schedule: "24 Hours (Dedicated Busway)",
+        via: "via EDSA Busway (all stations)",
+        travelTimeMin: 60,
+        travelTimeMax: 110,
+        payment: "Beep / Cash",
       },
     ],
   },
   {
-    id: "ayala-busway",
-    name: "EDSA Busway Stations",
-    shortName: "EDSA Carousel",
-    location: "EDSA Busway (dedicated lane, entire EDSA)",
+    id: "cubao-araneta",
+    name: "Araneta City Cubao Bus Port",
+    shortName: "Cubao Terminal",
+    location: "General Romulo Ave, Araneta City, Cubao, Quezon City",
     routes: [
       {
-        origin: "PITX",
-        destination: "Heritage Hotel",
-        operator: "EDSA Carousel",
-        mode: "bus",
-        fare: 15,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via Macapagal Blvd",
-        travelTimeMin: 15,
-        travelTimeMax: 30,
-        payment: "Beep RFID",
-      },
-      {
-        origin: "PITX",
-        destination: "MRT Taft",
-        operator: "EDSA Carousel",
-        mode: "bus",
-        fare: 15,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via Macapagal Blvd",
-        travelTimeMin: 15,
-        travelTimeMax: 30,
-        payment: "Beep RFID",
-      },
-      {
-        origin: "Ayala (EDSA)",
-        destination: "Buendia",
-        operator: "EDSA Carousel",
-        mode: "bus",
-        fare: 13,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway",
-        travelTimeMin: 10,
-        travelTimeMax: 25,
-        payment: "Beep RFID",
-      },
-      {
-        origin: "Ayala (EDSA)",
-        destination: "Ortigas",
-        operator: "EDSA Carousel",
-        mode: "bus",
-        fare: 16,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway",
-        travelTimeMin: 15,
-        travelTimeMax: 35,
-        payment: "Beep RFID",
-      },
-      {
-        origin: "Ayala (EDSA)",
-        destination: "Cubao",
-        operator: "EDSA Carousel",
+        origin: "Cubao",
+        destination: "One Ayala / Makati",
+        operator: "EDSA Carousel / MRT-3",
         mode: "bus",
         fare: 29,
-        schedule: "4:00 AM - 10:00 PM",
-        via: "via EDSA Busway",
+        schedule: "24 Hours (Carousel) / 5AM-10PM (MRT)",
+        via: "via EDSA Dedicated Busway",
         travelTimeMin: 25,
         travelTimeMax: 50,
-        payment: "Beep RFID",
+      },
+      {
+        origin: "Cubao",
+        destination: "BGC (Market Market)",
+        operator: "City Bus / Metrolink",
+        mode: "bus",
+        fare: 45,
+        schedule: "5:00 AM - 9:00 PM",
+        via: "via C5 Road / Katipunan / Kalayaan",
+        travelTimeMin: 40,
+        travelTimeMax: 80,
+      },
+      {
+        origin: "Cubao",
+        destination: "PITX",
+        operator: "EDSA Carousel",
+        mode: "bus",
+        fare: 46,
+        schedule: "24 Hours",
+        via: "via EDSA Busway",
+        travelTimeMin: 50,
+        travelTimeMax: 95,
+      },
+      {
+        origin: "Cubao",
+        destination: "Antipolo / Marikina",
+        operator: "LRT-2 / Jeep / UV Express",
+        mode: "modern_jeep",
+        fare: 30,
+        schedule: "5:00 AM - 10:00 PM",
+        via: "via Aurora Blvd / Marcos Highway",
+        travelTimeMin: 30,
+        travelTimeMax: 60,
       },
     ],
   },
   {
-    id: "c5-bus",
-    name: "C5 / BGC Bus Routes",
-    shortName: "BGC Bus",
-    location: "BGC area, Taguig",
+    id: "buendia-lrt",
+    name: "Gil Puyat / Buendia Bus Terminal",
+    shortName: "Buendia Hub",
+    location: "Taft Ave cor Gil Puyat Ave (LRT-1 Gil Puyat Station)",
     routes: [
       {
-        origin: "BGC (Market Market)",
-        destination: "Ayala MRT / McKinley Exchange",
-        operator: "BGC Bus (East Route)",
+        origin: "Buendia (LRT-1)",
+        destination: "BGC (Uptown / Market Market)",
+        operator: "Green Frog Hybrid Bus / Jeep to Guadalupe",
         mode: "bus",
-        fare: 15,
-        schedule: "5:00 AM - 12:00 AM",
-        via: "via 5th Avenue, 11th Avenue",
-        travelTimeMin: 15,
-        travelTimeMax: 30,
-        payment: "Beep RFID",
-        notes: "East Route — via 5th Ave, 11th Ave, 32nd St, McKinley",
+        fare: 30,
+        schedule: "5:30 AM - 10:00 PM",
+        via: "via Buendia / Kalayaan",
+        travelTimeMin: 25,
+        travelTimeMax: 55,
       },
       {
-        origin: "BGC (Market Market)",
-        destination: "Ayala MRT / McKinley Exchange",
-        operator: "BGC Bus (West Route)",
+        origin: "Buendia (LRT-1)",
+        destination: "PITX",
+        operator: "City Bus / Modern Jeep",
         mode: "bus",
-        fare: 15,
+        fare: 22,
         schedule: "5:00 AM - 11:00 PM",
-        via: "via 26th Street, Rizal Drive",
-        travelTimeMin: 15,
-        travelTimeMax: 30,
-        payment: "Beep RFID",
-        notes: "West Route — via 26th St, Rizal Dr, 5th Ave",
+        via: "via Roxas Blvd / Macapagal",
+        travelTimeMin: 20,
+        travelTimeMax: 40,
       },
       {
-        origin: "BGC (Market Market)",
-        destination: "BGC Loop",
-        operator: "BGC Bus (Central Route)",
+        origin: "Buendia (LRT-1)",
+        destination: "Batangas / Laguna / Quezon",
+        operator: "DLTB Co / JAC Liner / JAM",
         mode: "bus",
-        fare: 15,
-        schedule: "5:00 AM - 12:00 AM",
-        via: "BGC internal loop",
-        travelTimeMin: 10,
-        travelTimeMax: 20,
-        payment: "Beep RFID",
-        notes: "Central Route — loop around BGC",
+        fare: 150,
+        schedule: "4:00 AM - 11:00 PM",
+        via: "via SLEX / ACTEX",
+        travelTimeMin: 80,
+        travelTimeMax: 180,
+        notes: "Major southern provincial bus terminal hub.",
       },
     ],
   },
 ];
 
 /* ------------------------------------------------------------------ */
-/* Lookup helpers                                                      */
+/* Lookup & Multi-Hub Matching Helpers                                */
 /* ------------------------------------------------------------------ */
 
-/** Place aliases — para sa matching ng user query sa terminal names */
 const PLACE_ALIASES: Record<string, string[]> = {
-  alabang: ["vtx alabang", "starmall alabang", "festival mall", "northgate alabang", "alabang town center", "atc"],
-  bgc: ["market market", "market-market", "bonifacio global city", "uptown bgc", "fort bonifacio", "bgc terminal"],
-  pitx: ["paranaque integrated terminal", "pitx terminal"],
-  ayala: ["ayala mrt", "ayala station", "glorietta", "makati", "ayala avenue"],
-  cubao: ["cubao", "araneta center", "farmers"],
-  "edsa shaw": ["shaw boulevard", "edsa shaw", "shangri la"],
-  "naia": ["airport", "naia terminal", "ninoy aquino", "airport terminal"],
-  "moa": ["mall of asia", "sm moa", "seaside boulevard"],
-  "monumento": ["monumento", "caloocan"],
+  alabang: ["vtx alabang", "starmall alabang", "festival mall", "northgate alabang", "northgate", "alabang town center", "atc", "filinvest alabang"],
+  northgate: ["northgate alabang", "northgate cyberzone", "filinvest alabang", "vtx alabang", "starmall alabang"],
+  "one ayala": ["one ayala", "oneayala", "ayala terminal", "ayala mrt", "ayala station", "makati", "glorietta", "greenbelt", "ayala avenue"],
+  makati: ["one ayala", "ayala mrt", "ayala", "buendia", "poblacion", "glorietta", "greenbelt"],
+  bgc: ["market market", "market-market", "bonifacio global city", "uptown bgc", "uptown mall", "fort bonifacio", "high street", "serendra", "mckinley hill"],
+  pitx: ["paranaque integrated terminal", "pitx terminal", "coastal terminal"],
+  trinoma: ["trinoma", "sm north", "sm north edsa", "north ave", "north avenue", "vertis north", "project 6"],
+  cubao: ["cubao", "araneta center", "araneta city", "farmers market", "farmers plaza", "ali mall", "gateway"],
+  buendia: ["gil puyat", "buendia lrt", "taft buendia", "sen gil puyat"],
+  naia: ["airport", "naia terminal", "ninoy aquino", "terminal 1", "terminal 2", "terminal 3", "terminal 4"],
+  moa: ["mall of asia", "sm moa", "seaside boulevard", "pasay moa", "macapagal"],
+  nuvali: ["nuvali", "solenad", "santa rosa", "sta rosa", "balibago"],
+  clark: ["clark airport", "clark pampanga", "angeles pampanga"],
+  tagaytay: ["tagaytay", "mendez", "silang", "nasugbu"],
+  antipolo: ["antipolo", "masinag", "tikling", "marcos highway"],
 };
 
-/** I-expand ang query kasama ang aliases */
 export function expandTerminalQuery(query: string): string[] {
   const q = query.toLowerCase().trim();
   const results = [q];
@@ -463,7 +556,6 @@ export function expandTerminalQuery(query: string): string[] {
     if (q.includes(key)) {
       results.push(...aliases);
     }
-    // Check kung ang query ay alias mismo
     for (const alias of aliases) {
       if (q.includes(alias)) {
         results.push(key, ...aliases.filter((a) => a !== alias));
@@ -473,10 +565,6 @@ export function expandTerminalQuery(query: string): string[] {
   return [...new Set(results)];
 }
 
-/**
- * Hanapin ang direct routes mula sa origin papuntang destination.
- * Gumagamit ng fuzzy matching para sa place names.
- */
 export function findTerminalRoutes(
   originQuery: string,
   destQuery: string,
@@ -487,7 +575,6 @@ export function findTerminalRoutes(
   const results: TerminalRoute[] = [];
 
   for (const terminal of TERMINALS) {
-    // Check kung ang terminal ay match sa origin
     const terminalMatchesOrigin = originVariants.some(
       (v) =>
         terminal.name.toLowerCase().includes(v) ||
@@ -497,7 +584,6 @@ export function findTerminalRoutes(
 
     if (terminalMatchesOrigin) {
       for (const route of terminal.routes) {
-        // Check kung ang route destination ay match sa dest query
         const destMatches = destVariants.some(
           (v) =>
             route.destination.toLowerCase().includes(v) ||
@@ -510,7 +596,7 @@ export function findTerminalRoutes(
     }
   }
 
-  // Also check reverse routes (dest → origin)
+  // Reverse check
   for (const terminal of TERMINALS) {
     const terminalMatchesDest = destVariants.some(
       (v) =>
@@ -525,8 +611,7 @@ export function findTerminalRoutes(
             route.destination.toLowerCase().includes(v) ||
             v.includes(route.destination.toLowerCase()),
         );
-        if (originMatches && !results.some((r) => r === route)) {
-          // Reverse route — mark it
+        if (originMatches && !results.some((r) => r.destination === route.origin && r.origin === route.destination)) {
           results.push({
             ...route,
             origin: route.destination,
@@ -541,34 +626,6 @@ export function findTerminalRoutes(
   return results;
 }
 
-/**
- * Hanapin ang lahat ng routes mula sa isang lugar (origin only).
- * Para sa "paano magcommute mula sa Alabang" na walang specific dest.
- */
-export function findRoutesFromOrigin(originQuery: string): TerminalRoute[] {
-  const originVariants = expandTerminalQuery(originQuery);
-  const results: TerminalRoute[] = [];
-
-  for (const terminal of TERMINALS) {
-    const terminalMatchesOrigin = originVariants.some(
-      (v) =>
-        terminal.name.toLowerCase().includes(v) ||
-        terminal.shortName.toLowerCase().includes(v) ||
-        terminal.location.toLowerCase().includes(v),
-    );
-
-    if (terminalMatchesOrigin) {
-      results.push(...terminal.routes);
-    }
-  }
-
-  return results;
-}
-
-/**
- * Hanapin ang multi-leg routes (origin → transfer → destination).
- * Hal. Alabang → PITX → BGC
- */
 export function findMultiLegRoutes(
   originQuery: string,
   destQuery: string,
@@ -576,19 +633,15 @@ export function findMultiLegRoutes(
   const direct = findTerminalRoutes(originQuery, destQuery);
   if (direct.length > 0) return [direct];
 
-  // Try 1-transfer routes: origin → X → dest
   const multiLeg: TerminalRoute[][] = [];
 
   for (const terminal of TERMINALS) {
-    // Check kung may route mula sa origin papuntang sa terminal na ito
     const routesToTerminal = findTerminalRoutes(originQuery, terminal.shortName);
     if (routesToTerminal.length === 0) continue;
 
-    // Check kung may route mula sa terminal na ito papuntang dest
     const routesFromTerminal = findTerminalRoutes(terminal.shortName, destQuery);
     if (routesFromTerminal.length === 0) continue;
 
-    // Combine: origin → terminal → dest
     for (const leg1 of routesToTerminal.slice(0, 2)) {
       for (const leg2 of routesFromTerminal.slice(0, 2)) {
         multiLeg.push([leg1, leg2]);
@@ -596,13 +649,9 @@ export function findMultiLegRoutes(
     }
   }
 
-  return multiLeg.slice(0, 3); // Top 3 options
+  return multiLeg.slice(0, 3);
 }
 
-/**
- * Build ng context string para sa LLM grounding.
- * Ito ang nagdidikit ng real terminal data sa user question.
- */
 export function buildTerminalContext(
   originQuery: string,
   destQuery: string,
@@ -611,23 +660,31 @@ export function buildTerminalContext(
 
   if (direct.length > 0) {
     const parts = direct.slice(0, 3).map((r) => {
-      const time = r.travelTimeMin === r.travelTimeMax
-        ? `${r.travelTimeMin} min`
-        : `${r.travelTimeMin}–${r.travelTimeMax} min`;
-      return `${r.operator}: ${r.origin} → ${r.destination}, ₱${r.fare}, ${time}, ${r.schedule}, ${r.via}${r.notes ? `. ${r.notes}` : ""}`;
+      const time =
+        r.travelTimeMin === r.travelTimeMax
+          ? `${r.travelTimeMin} min`
+          : `${r.travelTimeMin}–${r.travelTimeMax} min`;
+      return `${r.operator}: ${r.origin} → ${r.destination}, ₱${r.fare}, ${time}, ${r.schedule}, ${r.via}${
+        r.notes ? `. ${r.notes}` : ""
+      }`;
     });
-    return `[Terminal route data — REAL routes, gamitin ito: ${parts.join(" | ")}. Source: pitx.ph, ph.commutetour.com (verified Aug 2026). Huwag mag-suggest ng ibang route kung hindi ito ang actual.]`;
+    return `[Terminal route data — REAL routes, gamitin ito: ${parts.join(
+      " | ",
+    )}. Source: One Ayala, PITX, VTX Alabang, ph.commutetour.com (verified Aug 2026). Huwag mag-suggest ng lumang jeep/MRT transfer kung may direct terminal route.]`;
   }
 
-  // Try multi-leg
   const multiLeg = findMultiLegRoutes(originQuery, destQuery);
   if (multiLeg.length > 0) {
     const parts = multiLeg.slice(0, 2).map((legs) => {
-      const legStr = legs.map((l) => `${l.origin}→${l.destination} (₱${l.fare}, ${l.operator})`).join(" + ");
+      const legStr = legs
+        .map((l) => `${l.origin}→${l.destination} (₱${l.fare}, ${l.operator})`)
+        .join(" + ");
       const totalFare = legs.reduce((sum, l) => sum + l.fare, 0);
       return `${legStr} = ₱${totalFare} total, ~${timeRange(legs)} min`;
     });
-    return `[Terminal route data (multi-leg) — REAL routes, gamitin ito: ${parts.join(" | ")}. Source: pitx.ph, ph.commutetour.com (verified Aug 2026). Huwag mag-suggest ng ibang route kung hindi ito ang actual.]`;
+    return `[Terminal route data (multi-leg) — REAL routes, gamitin ito: ${parts.join(
+      " | ",
+    )}. Source: One Ayala, PITX, VTX, ph.commutetour.com (verified Aug 2026).]`;
   }
 
   return null;

@@ -26,7 +26,7 @@ async function complete(
   systemInstruction: string,
   temperature: number,
 ): Promise<string> {
-  const call = () =>
+  const callWithModel = (m: string) =>
     fetch(`${GROQ_BASE}/chat/completions`, {
       method: "POST",
       headers: {
@@ -34,28 +34,32 @@ async function complete(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model,
+        model: m,
         temperature,
         max_tokens: 2048,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemInstruction },
-          // Ang internal ChatMessage role ay "model" (Gemini convention);
-          // kailangan ng Groq ang "assistant".
-          ...messages.map((m) => ({
-            role: m.role === "model" ? "assistant" : "user",
-            content: m.content,
+          ...messages.map((msg) => ({
+            role: msg.role === "model" ? "assistant" : "user",
+            content: msg.content,
           })),
         ],
       }),
     });
 
-  let res = await call();
+  let res = await callWithModel(model);
 
-  // Free tier TPM rate limit (429) — isang retry na may backoff.
+  // Free tier TPM rate limit (429) — subukan ang fallback models kung busy ang primary
   if (res.status === 429) {
-    await new Promise((r) => setTimeout(r, 2000));
-    res = await call();
+    const fallbackModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"].filter(
+      (m) => m !== model,
+    );
+    for (const fb of fallbackModels) {
+      await new Promise((r) => setTimeout(r, 600));
+      res = await callWithModel(fb);
+      if (res.ok) break;
+    }
   }
 
   if (!res.ok) {

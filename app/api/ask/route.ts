@@ -4,6 +4,7 @@ import { fallbackAnswer } from "@/lib/answers";
 import type { ChatMessage } from "@/lib/answers";
 import { logQuestion } from "@/lib/logging";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getCachedAnswer, setCachedAnswer } from "@/lib/cache";
 
 /**
  * POST /api/ask — thin HTTP layer; ang business logic ay nasa
@@ -69,6 +70,21 @@ export async function POST(req: Request) {
     );
   }
 
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+  const queryText = lastUserMsg?.content;
+
+  // 1. Fast Cache Hit check (kung walang image attachment)
+  if (!body.image && queryText && messages.length <= 2) {
+    const cached = getCachedAnswer(queryText);
+    if (cached) {
+      return NextResponse.json({
+        answer: cached.answer,
+        suggestions: cached.suggestions,
+        cached: true,
+      });
+    }
+  }
+
   // Rate limit (cost control — libreng tier): 15 tanong/araw + burst.
   const limit = checkRateLimit(clientIp ?? "unknown");
   if (!limit.ok) {
@@ -99,6 +115,10 @@ export async function POST(req: Request) {
   try {
     const result = await runAnswerPipeline(messages, { image });
     const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+
+    if (!body.image && queryText) {
+      setCachedAnswer(queryText, result.answer, result.suggestions);
+    }
 
     await logQuestion({
       question: lastUserMsg?.content ?? "(walang user message)",
