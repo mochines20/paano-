@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { answerHash } from "@/lib/feedback";
 import { answerToText } from "@/lib/answers";
 import type { PaanoAnswer } from "@/lib/answers";
@@ -11,10 +11,13 @@ import {
   getSavedAnswers,
 } from "@/lib/storage";
 import { shareText } from "@/lib/share";
+import { findSubstitutesForItems } from "@/lib/substitutes";
+import { StepTrackerModal } from "@/components/StepTrackerModal";
 
 /**
  * AnswerCard — structured answer display, ibang layout per category.
- * May transit timeline, interactive cooking checklist, at quick actions.
+ * May transit timeline, interactive cooking checklist, budget breakdown,
+ * substitutes drawer, at fullscreen Cook/Biyahe step tracker.
  */
 
 const CATEGORY_META = {
@@ -104,6 +107,7 @@ export function AnswerCard({
   const [feedbackDone, setFeedbackDone] = useState(false);
   const [flagCount, setFlagCount] = useState(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const hash = useRef(answerHash(answer));
 
   const showToast = (msg: string) => {
@@ -193,6 +197,19 @@ export function AnswerCard({
     setFeedbackDone(true);
     setShowCorrection(false);
   }
+
+  // ── Find Relevant Substitutes ──────────────────────────────────
+  const relevantSubstitutes = useMemo(() => {
+    if (spec?.category === "cooking") {
+      const items = spec.ingredients.map((i) => i.item);
+      return findSubstitutesForItems(items, "cooking");
+    }
+    if (spec?.category === "diy") {
+      const items = [...spec.tools, ...spec.materials];
+      return findSubstitutesForItems(items, "diy");
+    }
+    return [];
+  }, [spec]);
 
   return (
     <article
@@ -336,7 +353,10 @@ export function AnswerCard({
           </p>
         )}
 
-        {/* Category specific layout */}
+        {/* ── Magkano Aabutin? Budget Breakdown Card ────────────── */}
+        <BudgetBreakdownCard answer={answer} />
+
+        {/* ── Category Specific Content ────────────────────────── */}
         {spec?.category === "commute" && (
           <CommuteSection spec={spec} steps={answer.steps} tint={meta.tint} />
         )}
@@ -350,6 +370,39 @@ export function AnswerCard({
         {spec?.category === "docs" && <DocsSection spec={spec} tint={meta.tint} />}
         {spec?.category === "generic" && spec.note && (
           <p className="mb-3 text-sm italic text-zinc-400">{spec.note}</p>
+        )}
+
+        {/* ── Diskarte & Pamalit (Substitutes Drawer) ──────────── */}
+        {relevantSubstitutes.length > 0 && (
+          <SubstitutesSection substitutes={relevantSubstitutes} />
+        )}
+
+        {/* ── Fullscreen Step Tracker Launch Banner ───────────── */}
+        {answer.steps.length > 0 && (
+          <div className="mt-4 flex items-center justify-between rounded-2xl border border-orange-500/30 bg-orange-500/10 p-3">
+            <div>
+              <p className="text-xs font-bold text-orange-300">
+                {answer.category === "cooking"
+                  ? "Gusto mo bang magluto nang sabay sa gabay?"
+                  : answer.category === "commute"
+                  ? "Handa na bang bumiyahe?"
+                  : "Nais mo bang subaybayan hakbang-hakbang?"}
+              </p>
+              <p className="text-[10px] text-zinc-400">
+                Fullscreen mode · Mananatiling naka-on ang screen
+              </p>
+            </div>
+            <button
+              onClick={() => setIsTrackerOpen(true)}
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-orange-500 px-3.5 py-1.5 text-xs font-black text-zinc-950 shadow-md shadow-orange-500/20 hover:bg-orange-400 active:scale-95 transition-all focus-ring"
+            >
+              {answer.category === "cooking"
+                ? "Simulan ang Luto 👨‍🍳"
+                : answer.category === "commute"
+                ? "Biyahe Tracker 🚌"
+                : "Step Tracker 🛠️"}
+            </button>
+          </div>
         )}
 
         {/* Generic Steps (for non-commute categories) */}
@@ -410,7 +463,171 @@ export function AnswerCard({
           }}
         />
       </div>
+
+      {/* Fullscreen Step Tracker Modal */}
+      <StepTrackerModal
+        isOpen={isTrackerOpen}
+        onClose={() => setIsTrackerOpen(false)}
+        title={answer.title}
+        steps={answer.steps}
+        category={answer.category}
+      />
     </article>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   "MAGKANO AABUTIN?" BUDGET BREAKDOWN COMPONENT
+   ────────────────────────────────────────────────────────────────────────── */
+
+function BudgetBreakdownCard({ answer }: { answer: PaanoAnswer }) {
+  const spec = answer.category_specific;
+
+  if (spec?.category === "commute") {
+    const min = spec.fare_range.min;
+    const max = spec.fare_range.max;
+    const roundMin = min * 2;
+    const roundMax = max * 2;
+
+    return (
+      <div className="mb-3 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-3 sm:p-3.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">💰</span>
+            <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+              Magkano Aabutin? (Pamasahe Budget)
+            </h4>
+          </div>
+          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+            LTFRB & Terminal Grounded
+          </span>
+        </div>
+
+        <div className="mt-2.5 grid grid-cols-2 gap-2 text-center">
+          <div className="rounded-xl border border-emerald-500/20 bg-zinc-950/60 p-2">
+            <p className="text-[10px] font-semibold text-zinc-400">Isang Pasahe (One-Way)</p>
+            <p className="text-base font-black text-emerald-300">
+              {min === max ? `₱${min}` : `₱${min} – ₱${max}`}
+            </p>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-zinc-950/60 p-2">
+            <p className="text-[10px] font-semibold text-zinc-400">Balikan (Round-Trip)</p>
+            <p className="text-base font-black text-emerald-400">
+              {roundMin === roundMax ? `₱${roundMin}` : `₱${roundMin} – ₱${roundMax}`}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (spec?.category === "cooking") {
+    // Extract peso amounts from ingredient amounts if available
+    let estimatedTotal = 0;
+    spec.ingredients.forEach((ing) => {
+      const match = ing.amount?.match(/₱(\d+)/);
+      if (match) {
+        estimatedTotal += parseInt(match[1], 10);
+      }
+    });
+
+    if (estimatedTotal > 0) {
+      return (
+        <div className="mb-3 flex items-center justify-between rounded-2xl border border-amber-500/30 bg-amber-950/20 p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-base">💰</span>
+            <div>
+              <p className="text-xs font-bold text-amber-300">
+                Tinatayang Gastos sa Palengke
+              </p>
+              <p className="text-[10px] text-zinc-400">
+                DA Bantay Presyo estimated total para sa {spec.servings || "4-6 pax"}
+              </p>
+            </div>
+          </div>
+          <span className="text-base font-black text-amber-300">
+            ≈ ₱{estimatedTotal}–₱{Math.round(estimatedTotal * 1.2)}
+          </span>
+        </div>
+      );
+    }
+  }
+
+  return null;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   "DISKARTE & PAMALIT" (SUBSTITUTES SECTION)
+   ────────────────────────────────────────────────────────────────────────── */
+
+function SubstitutesSection({
+  substitutes,
+}: {
+  substitutes: ReturnType<typeof findSubstitutesForItems>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="mt-3 rounded-2xl border border-amber-500/30 bg-zinc-950/60 p-3 sm:p-3.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">🔄</span>
+          <div>
+            <h4 className="text-xs font-bold text-amber-300">
+              Diskarte & Pamalit (Sari-Sari Store & Tool Hacks)
+            </h4>
+            <p className="text-[10px] text-zinc-400">
+              Kulang ang sangkap o gamit? Eto ang puwedeng pamalit.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="rounded-full bg-zinc-800 px-2.5 py-1 text-[11px] font-bold text-zinc-300 hover:bg-zinc-700"
+        >
+          {expanded ? "Itago ▲" : `Tingnan (${substitutes.length}) ▼`}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="mt-3 space-y-2.5 pt-2 border-t border-zinc-800 animate-slide-down">
+          {substitutes.some((s) => s.category === "diy") && (
+            <p className="rounded-lg border border-rose-500/30 bg-rose-950/20 px-2.5 py-1.5 text-[10px] font-medium text-rose-200">
+              ⚠️ Babala: Hindi pamalit ang mga DIY hack para sa kuryente, gas, pressure, structural, o sharp tool repairs. Tawag ang lisensyadong tekniko para sa mga ito.
+            </p>
+          )}
+          {substitutes.map((sub) => (
+            <div
+              key={sub.id}
+              className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-2.5"
+            >
+              <p className="text-xs font-bold text-amber-400">
+                Walang {sub.original}?
+              </p>
+              <ul className="mt-1 space-y-1 text-xs text-zinc-300">
+                {sub.substitutes.map((item, idx) => (
+                  <li key={idx} className="flex flex-col">
+                    <span className="font-semibold text-white">
+                      ➔ {item.name}: <span className="text-amber-200 font-normal">{item.ratioOrHow}</span>
+                    </span>
+                    {item.note && (
+                      <span className="text-[10px] text-zinc-400 pl-4 italic">
+                        {item.note}
+                      </span>
+                    )}
+                    {item.safety && (
+                      <span className="text-[10px] text-rose-300 pl-4 font-medium">
+                        ⚠ {item.safety}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -543,7 +760,7 @@ function CommuteSection({
 }) {
   return (
     <div className="space-y-3">
-      {/* Overview Cards */}
+      {/* Overview Badges */}
       <div className={`rounded-xl border p-2.5 sm:p-3 ${tint} ${CATEGORY_META.commute.border}`}>
         <div className="mb-2 flex flex-wrap gap-1.5">
           {spec.modes.map((m) => (
@@ -609,7 +826,6 @@ function CommuteSection({
 
               return (
                 <div key={idx} className="relative animate-fade-up" style={{ animationDelay: `${idx * 40}ms` }}>
-                  {/* Step node dot */}
                   <span
                     className={`absolute -left-6 top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-4 ring-zinc-950 ${
                       isFirst
@@ -651,7 +867,7 @@ function CookingSection({
   border: string;
 }) {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
-  const [portionScale, setPortionScale] = useState<number>(1); // 1x, 1.5x, 2x
+  const [portionScale, setPortionScale] = useState<number>(1);
 
   const toggleCheck = (item: string) => {
     setCheckedItems((prev) => ({ ...prev, [item]: !prev[item] }));
@@ -672,7 +888,6 @@ function CookingSection({
           )}
         </SectionTitle>
 
-        {/* Portion scaling pills */}
         <div className="flex items-center gap-1">
           <span className="text-[10px] font-semibold text-zinc-500 mr-1">Dami:</span>
           {[
@@ -695,7 +910,6 @@ function CookingSection({
         </div>
       </div>
 
-      {/* Progress tracker */}
       {totalIngredients > 0 && (
         <div className="mb-2.5 flex items-center justify-between rounded-lg bg-amber-500/10 px-3 py-1.5 text-xs text-amber-300">
           <span>
@@ -710,7 +924,6 @@ function CookingSection({
         </div>
       )}
 
-      {/* Interactive checklist */}
       <ul
         className={`space-y-1.5 rounded-xl border p-2.5 text-sm text-zinc-200 sm:p-3 ${tint} ${border}`}
       >
@@ -852,6 +1065,20 @@ function FirstAidSection({
   );
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   INTERACTIVE GOVERNMENT REQUIREMENTS CHECKLIST ("Handa na ba ako?")
+   ────────────────────────────────────────────────────────────────────────── */
+
+function docsChecklistKey(spec: {
+  agency: string;
+  requirements: string[];
+}): string {
+  // Stable per-document scope: agency + sorted requirements signature.
+  // Hindi nag-share ang state sa magkaibang dokumento.
+  const sig = [...spec.requirements].sort().join("||").slice(0, 200);
+  return `paano:docs-checklist:${spec.agency}:${sig}`;
+}
+
 function DocsSection({
   spec,
   tint,
@@ -859,9 +1086,46 @@ function DocsSection({
   spec: Extract<PaanoAnswer["category_specific"], { category: "docs" }>;
   tint: string;
 }) {
+  const storageKey = useMemo(() => docsChecklistKey(spec), [spec]);
+
+  const [checkedReqs, setCheckedReqs] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleReq = (r: string) => {
+    setCheckedReqs((prev) => {
+      const next = { ...prev, [r]: !prev[r] };
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        /* storage unavailable */
+      }
+      return next;
+    });
+  };
+
+  const resetChecklist = () => {
+    setCheckedReqs({});
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
+  const totalReqs = spec.requirements.length;
+  const checkedCount = Object.values(checkedReqs).filter(Boolean).length;
+  const isAllReady = totalReqs > 0 && checkedCount === totalReqs;
+
   return (
     <div
-      className={`space-y-3 rounded-xl border p-2.5 sm:p-3 ${tint} ${CATEGORY_META.docs.border}`}
+      className={`space-y-3 rounded-xl border p-2.5 sm:p-3.5 ${tint} ${CATEGORY_META.docs.border}`}
     >
       <div className="flex items-center justify-between">
         <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-[11px] font-bold uppercase text-violet-300">
@@ -873,19 +1137,91 @@ function DocsSection({
           </span>
         )}
       </div>
-      {spec.requirements.length > 0 && (
+
+      {/* Interactive Requirements Checklist */}
+      {totalReqs > 0 && (
         <div>
-          <SectionTitle>Mga Kailangang Dalhin</SectionTitle>
-          <ul className="list-inside list-disc space-y-1 text-xs text-zinc-300">
-            {spec.requirements.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
+          <div className="mb-2 flex items-center justify-between">
+            <SectionTitle>📋 Checklist: Handa na ba ako?</SectionTitle>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                isAllReady
+                  ? "bg-emerald-500 text-zinc-950"
+                  : "bg-violet-500/20 text-violet-300"
+              }`}
+            >
+              {checkedCount} of {totalReqs} Handa
+            </span>
+          </div>
+
+          <div className="mb-2.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+            <div
+              className={`h-full transition-all duration-300 ${
+                isAllReady ? "bg-emerald-500" : "bg-violet-500"
+              }`}
+              style={{ width: `${(checkedCount / totalReqs) * 100}%` }}
+            />
+          </div>
+
+          {isAllReady ? (
+            <div className="mb-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 p-2.5 text-xs text-emerald-300 animate-slide-down">
+              🎉 <span className="font-bold">Kumpleto na ang requirements mo!</span> Pwede ka nang magtungo sa ahensya o mag-book ng appointment.
+            </div>
+          ) : (
+            <p className="mb-2 text-[11px] text-zinc-400">
+              I-check ang mga dokumentong hawak mo na para malaman kung ano pa ang kulang:
+            </p>
+          )}
+
+          <ul className="space-y-1.5 text-xs text-zinc-200">
+            {spec.requirements.map((r, i) => {
+              const isChecked = !!checkedReqs[r];
+              return (
+                <li
+                  key={i}
+                  onClick={() => toggleReq(r)}
+                  className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-2 transition-all ${
+                    isChecked
+                      ? "border-emerald-500/40 bg-emerald-950/20 text-zinc-400"
+                      : "border-zinc-800 bg-zinc-900/60 hover:bg-zinc-900 text-zinc-200"
+                  }`}
+                >
+                  <span
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                      isChecked
+                        ? "border-emerald-500 bg-emerald-500 text-zinc-950 font-bold text-[10px]"
+                        : "border-zinc-700 bg-zinc-950"
+                    }`}
+                  >
+                    {isChecked ? "✓" : ""}
+                  </span>
+                  <span className={isChecked ? "line-through text-zinc-500" : ""}>
+                    {r}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
+
+          {checkedCount > 0 && (
+            <button
+              onClick={resetChecklist}
+              className="mt-2 text-[10px] font-semibold text-zinc-500 underline hover:text-zinc-300"
+            >
+              I-reset ang checklist
+            </button>
+          )}
+
+          <p className="mt-2 text-[10px] italic text-zinc-500">
+            Tandaan: maaaring magbago ang mga requirements at bayarin. I-verify sa
+            opisyal na ahensya bago magtungo.
+          </p>
         </div>
       )}
+
       {spec.fees.length > 0 && (
-        <div>
-          <SectionTitle>Bayarin (Fees)</SectionTitle>
+        <div className="mt-3">
+          <SectionTitle>Bayarin (Official Fees)</SectionTitle>
           <dl className="space-y-1 text-xs">
             {spec.fees.map((f, i) => (
               <div key={i} className="flex justify-between border-b border-zinc-800 pb-1">
