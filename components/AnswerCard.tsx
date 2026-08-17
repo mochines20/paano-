@@ -64,10 +64,10 @@ const CATEGORY_META = {
   generic: {
     label: "Gabay",
     badge: "bg-zinc-700/40 text-zinc-300 ring-zinc-700/50",
-    bar: "from-orange-500 to-zinc-600",
-    tint: "bg-zinc-800/30",
-    border: "border-zinc-800",
-    accentText: "text-orange-400",
+    bar: "from-[#FBE77A] to-[#125070]",
+    tint: "bg-white/5",
+    border: "border-white/10",
+    accentText: "text-[#FBE77A]",
   },
 } as const;
 
@@ -213,14 +213,14 @@ export function AnswerCard({
 
   return (
     <article
-      className={`relative animate-fade-up overflow-hidden rounded-2xl border bg-zinc-900/80 shadow-lg backdrop-blur-md transition-all duration-200 hover:border-opacity-50 ${meta.border}`}
+      className={`relative animate-fade-up overflow-hidden rounded-2xl border bg-white/5 shadow-lg backdrop-blur-xl backdrop-saturate-150 transition-all duration-200 hover:border-opacity-50 ${meta.border}`}
     >
       {/* Category accent bar */}
       <div aria-hidden className={`h-1.5 w-full bg-gradient-to-r ${meta.bar}`} />
 
       {/* Floating Toast Notification */}
       {toastMsg && (
-        <div className="animate-slide-down absolute top-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-orange-500 px-3.5 py-1 text-xs font-bold text-zinc-950 shadow-lg">
+        <div className="animate-slide-down absolute top-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-[#FBE77A] px-3.5 py-1 text-xs font-bold text-[#0A2540] shadow-lg">
           {toastMsg}
         </div>
       )}
@@ -244,7 +244,7 @@ export function AnswerCard({
                 onClick={() => void copyAnswer()}
                 title="Kopyahin ang buong sagot"
                 aria-label="Kopyahin ang sagot"
-                className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2.5 py-1 text-[10px] font-medium text-zinc-300 transition-all duration-150 hover:bg-zinc-700 hover:text-white active:scale-95 focus-ring"
+                className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-medium text-zinc-300 transition-all duration-150 hover:bg-white/10 hover:text-white active:scale-95 focus-ring"
               >
                 {copied ? (
                   <>
@@ -288,8 +288,8 @@ export function AnswerCard({
                   aria-label={saved ? "Alisin sa saved" : "I-save ang sagot"}
                   className={`inline-flex items-center justify-center rounded-full p-1.5 transition-all duration-150 active:scale-95 focus-ring ${
                     saved
-                      ? "bg-orange-500/20 text-orange-300 ring-1 ring-orange-500/40"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                      ? "bg-[#FBE77A]/20 text-[#FBE77A] ring-1 ring-[#FBE77A]/40"
+                      : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
                   }`}
                 >
                   <svg
@@ -310,7 +310,7 @@ export function AnswerCard({
                 onClick={() => void shareAnswer()}
                 title="I-share ang sagot"
                 aria-label="I-share ang sagot"
-                className="inline-flex items-center justify-center rounded-full bg-zinc-800 p-1.5 text-zinc-400 transition-all duration-150 hover:bg-zinc-700 hover:text-zinc-200 active:scale-95 focus-ring"
+                className="inline-flex items-center justify-center rounded-full bg-white/5 p-1.5 text-zinc-400 transition-all duration-150 hover:bg-white/10 hover:text-zinc-200 active:scale-95 focus-ring"
               >
                 {shared ? (
                   <svg
@@ -379,9 +379,9 @@ export function AnswerCard({
 
         {/* ── Fullscreen Step Tracker Launch Banner ───────────── */}
         {answer.steps.length > 0 && (
-          <div className="mt-4 flex items-center justify-between rounded-2xl border border-orange-500/30 bg-orange-500/10 p-3">
+          <div className="mt-4 flex items-center justify-between rounded-2xl border border-[#FBE77A]/30 bg-[#FBE77A]/10 p-3">
             <div>
-              <p className="text-xs font-bold text-orange-300">
+              <p className="text-xs font-bold text-[#FBE77A]">
                 {answer.category === "cooking"
                   ? "Gusto mo bang magluto nang sabay sa gabay?"
                   : answer.category === "commute"
@@ -394,7 +394,7 @@ export function AnswerCard({
             </div>
             <button
               onClick={() => setIsTrackerOpen(true)}
-              className="flex shrink-0 items-center gap-1.5 rounded-full bg-orange-500 px-3.5 py-1.5 text-xs font-black text-zinc-950 shadow-md shadow-orange-500/20 hover:bg-orange-400 active:scale-95 transition-all focus-ring"
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#FBE77A] px-3.5 py-1.5 text-xs font-black text-[#0A2540] shadow-md shadow-[#FBE77A]/20 hover:bg-[#FFE98A] active:scale-95 transition-all focus-ring"
             >
               {answer.category === "cooking"
                 ? "Simulan ang Luto 👨‍🍳"
@@ -423,7 +423,7 @@ export function AnswerCard({
             href={answer.official_link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-lg text-sm font-semibold text-orange-300 transition-colors hover:text-orange-200"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg text-sm font-semibold text-[#FBE77A] transition-colors hover:text-[#FFE98A]"
           >
             <svg
               className="h-3.5 w-3.5"
@@ -443,7 +443,7 @@ export function AnswerCard({
         )}
 
         {flagCount > 0 && (
-          <p className="mt-3 rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-medium text-orange-200">
+          <p className="mt-3 rounded-xl border border-[#FBE77A]/30 bg-[#FBE77A]/10 px-3 py-2 text-xs font-medium text-[#FFE98A]">
             May {flagCount} nagsabing i-verify ang sagot na ito — may correction ang
             komunidad. I-double check bago kumilos.
           </p>
@@ -504,13 +504,13 @@ function BudgetBreakdownCard({ answer }: { answer: PaanoAnswer }) {
         </div>
 
         <div className="mt-2.5 grid grid-cols-2 gap-2 text-center">
-          <div className="rounded-xl border border-emerald-500/20 bg-zinc-950/60 p-2">
+          <div className="rounded-xl border border-emerald-500/20 bg-[#021B30]/40 backdrop-blur p-2">
             <p className="text-[10px] font-semibold text-zinc-400">Isang Pasahe (One-Way)</p>
             <p className="text-base font-black text-emerald-300">
               {min === max ? `₱${min}` : `₱${min} – ₱${max}`}
             </p>
           </div>
-          <div className="rounded-xl border border-emerald-500/20 bg-zinc-950/60 p-2">
+          <div className="rounded-xl border border-emerald-500/20 bg-[#021B30]/40 backdrop-blur p-2">
             <p className="text-[10px] font-semibold text-zinc-400">Balikan (Round-Trip)</p>
             <p className="text-base font-black text-emerald-400">
               {roundMin === roundMax ? `₱${roundMin}` : `₱${roundMin} – ₱${roundMax}`}
@@ -568,7 +568,7 @@ function SubstitutesSection({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="mt-3 rounded-2xl border border-amber-500/30 bg-zinc-950/60 p-3 sm:p-3.5">
+    <div className="mt-3 rounded-2xl border border-amber-500/30 bg-[#021B30]/40 backdrop-blur p-3 sm:p-3.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm">🔄</span>
@@ -583,14 +583,14 @@ function SubstitutesSection({
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="rounded-full bg-zinc-800 px-2.5 py-1 text-[11px] font-bold text-zinc-300 hover:bg-zinc-700"
+          className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-bold text-zinc-300 hover:bg-white/10"
         >
           {expanded ? "Itago ▲" : `Tingnan (${substitutes.length}) ▼`}
         </button>
       </div>
 
       {expanded && (
-        <div className="mt-3 space-y-2.5 pt-2 border-t border-zinc-800 animate-slide-down">
+        <div className="mt-3 space-y-2.5 pt-2 border-t border-white/10 animate-slide-down">
           {substitutes.some((s) => s.category === "diy") && (
             <p className="rounded-lg border border-rose-500/30 bg-rose-950/20 px-2.5 py-1.5 text-[10px] font-medium text-rose-200">
               ⚠️ Babala: Hindi pamalit ang mga DIY hack para sa kuryente, gas, pressure, structural, o sharp tool repairs. Tawag ang lisensyadong tekniko para sa mga ito.
@@ -599,7 +599,7 @@ function SubstitutesSection({
           {substitutes.map((sub) => (
             <div
               key={sub.id}
-              className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-2.5"
+              className="rounded-xl border border-white/10 bg-white/5 backdrop-blur p-2.5"
             >
               <p className="text-xs font-bold text-amber-400">
                 Walang {sub.original}?
@@ -659,7 +659,7 @@ function CommunityFeedback({
   }
 
   return (
-    <div className="mt-4 border-t border-zinc-800/80 pt-3">
+    <div className="mt-4 border-t border-white/10 pt-3">
       {showCorrection ? (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-zinc-400">
@@ -671,12 +671,12 @@ function CommunityFeedback({
             rows={2}
             maxLength={2000}
             placeholder="Hal. 'mas tama ang ₱26 na pamasahe ngayon'"
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-orange-500"
+            className="w-full rounded-xl border border-white/15 bg-[#021B30]/60 px-3 py-2 text-xs text-zinc-100 outline-none backdrop-blur focus:border-[#FBE77A]"
           />
           <div className="flex gap-2">
             <button
               onClick={onCorrectionSubmit}
-              className="rounded-full bg-orange-500 px-3 py-1.5 text-xs font-bold text-zinc-950 transition-all duration-150 hover:bg-orange-400 active:scale-95 focus-ring"
+              className="rounded-full bg-[#FBE77A] px-3 py-1.5 text-xs font-bold text-[#0A2540] transition-all duration-150 hover:bg-[#FFE98A] active:scale-95 focus-ring"
             >
               Ipadala
             </button>
@@ -697,7 +697,7 @@ function CommunityFeedback({
             className={`rounded-full px-2.5 py-1 font-semibold transition-all duration-150 active:scale-90 focus-ring ${
               vote === true
                 ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/40"
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                : "bg-white/5 text-zinc-400 hover:bg-white/10"
             }`}
           >
             Oo
@@ -708,7 +708,7 @@ function CommunityFeedback({
             className={`rounded-full px-2.5 py-1 font-semibold transition-all duration-150 active:scale-90 focus-ring ${
               vote === false
                 ? "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/40"
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                : "bg-white/5 text-zinc-400 hover:bg-white/10"
             }`}
           >
             Hindi
@@ -732,7 +732,7 @@ function ConfidenceBadge({
       : "bg-rose-500";
   return (
     <span
-      className="flex items-center gap-1 rounded-full bg-zinc-800 px-2 py-1 text-[10px] font-medium text-zinc-400"
+      className="flex items-center gap-1 rounded-full bg-white/5 px-2 py-1 text-[10px] font-medium text-zinc-400"
       title={CONFIDENCE_LABEL[confidence]}
     >
       <span className={`animate-pulse-dot h-1.5 w-1.5 rounded-full ${dot}`} />
@@ -778,7 +778,7 @@ function CommuteSection({
           </p>
         )}
         <dl className="grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-xl border border-sky-500/10 bg-zinc-950/60 p-2 sm:p-2.5">
+          <div className="rounded-xl border border-sky-500/10 bg-[#021B30]/40 backdrop-blur p-2 sm:p-2.5">
             <dt className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
               Oras ng Byahe
             </dt>
@@ -786,7 +786,7 @@ function CommuteSection({
               ~{spec.time_range.min}–{spec.time_range.max} min
             </dd>
           </div>
-          <div className="rounded-xl border border-sky-500/10 bg-zinc-950/60 p-2 sm:p-2.5">
+          <div className="rounded-xl border border-sky-500/10 bg-[#021B30]/40 backdrop-blur p-2 sm:p-2.5">
             <dt className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
               Pamasahe (Est.)
             </dt>
@@ -804,7 +804,7 @@ function CommuteSection({
 
       {/* Interactive Visual Transit Timeline */}
       {steps.length > 0 && (
-        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3 sm:p-4">
+        <div className="mt-4 rounded-xl border border-white/10 bg-[#021B30]/30 backdrop-blur p-3 sm:p-4">
           <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-sky-400">
             <svg
               className="h-3.5 w-3.5"
@@ -827,18 +827,18 @@ function CommuteSection({
               return (
                 <div key={idx} className="relative animate-fade-up" style={{ animationDelay: `${idx * 40}ms` }}>
                   <span
-                    className={`absolute -left-6 top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-4 ring-zinc-950 ${
+                    className={`absolute -left-6 top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-4 ring-[#021B30] ${
                       isFirst
-                        ? "bg-sky-500 text-zinc-950"
+                        ? "bg-sky-500 text-[#0A2540]"
                         : isLast
-                        ? "bg-emerald-500 text-zinc-950"
-                        : "bg-zinc-800 text-sky-300"
+                        ? "bg-emerald-500 text-[#0A2540]"
+                        : "bg-white/5 text-sky-300"
                     }`}
                   >
                     {isLast ? "✓" : idx + 1}
                   </span>
 
-                  <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/60 p-2.5 sm:p-3 hover:border-sky-500/30 transition-colors">
+                  <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur p-2.5 sm:p-3 hover:border-sky-500/30 transition-colors">
                     <p className="text-xs sm:text-sm font-medium leading-relaxed text-zinc-200">
                       {step}
                     </p>
@@ -900,8 +900,8 @@ function CookingSection({
               onClick={() => setPortionScale(s.mult)}
               className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${
                 portionScale === s.mult
-                  ? "bg-amber-500 text-zinc-950 ring-1 ring-amber-400"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  ? "bg-amber-500 text-[#0A2540] ring-1 ring-amber-400"
+                  : "bg-white/5 text-zinc-400 hover:bg-white/10"
               }`}
             >
               {s.label}
@@ -915,7 +915,7 @@ function CookingSection({
           <span>
             Pantry Ready: {checkedCount} of {totalIngredients} sangkap
           </span>
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-white/5">
             <div
               className="h-full bg-amber-500 transition-all duration-300"
               style={{ width: `${(checkedCount / totalIngredients) * 100}%` }}
@@ -934,15 +934,15 @@ function CookingSection({
               key={i}
               onClick={() => toggleCheck(ing.item)}
               className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg p-1.5 transition-colors ${
-                isChecked ? "bg-amber-500/10 text-zinc-400" : "hover:bg-zinc-800/50"
+                isChecked ? "bg-amber-500/10 text-zinc-400" : "hover:bg-white/5/50"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <span
                   className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
                     isChecked
-                      ? "border-amber-500 bg-amber-500 text-zinc-950 font-bold text-[10px]"
-                      : "border-zinc-700 bg-zinc-900"
+                      ? "border-amber-500 bg-amber-500 text-[#0A2540] font-bold text-[10px]"
+                      : "border-white/15 bg-[#021B30]/60"
                   }`}
                 >
                   {isChecked ? "✓" : ""}
@@ -1146,7 +1146,7 @@ function DocsSection({
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                 isAllReady
-                  ? "bg-emerald-500 text-zinc-950"
+                  ? "bg-emerald-500 text-[#0A2540]"
                   : "bg-violet-500/20 text-violet-300"
               }`}
             >
@@ -1154,7 +1154,7 @@ function DocsSection({
             </span>
           </div>
 
-          <div className="mb-2.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div className="mb-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
             <div
               className={`h-full transition-all duration-300 ${
                 isAllReady ? "bg-emerald-500" : "bg-violet-500"
@@ -1183,14 +1183,14 @@ function DocsSection({
                   className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-2 transition-all ${
                     isChecked
                       ? "border-emerald-500/40 bg-emerald-950/20 text-zinc-400"
-                      : "border-zinc-800 bg-zinc-900/60 hover:bg-zinc-900 text-zinc-200"
+                      : "border-white/10 bg-white/5 backdrop-blur hover:bg-white/10 text-zinc-200"
                   }`}
                 >
                   <span
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
                       isChecked
-                        ? "border-emerald-500 bg-emerald-500 text-zinc-950 font-bold text-[10px]"
-                        : "border-zinc-700 bg-zinc-950"
+                        ? "border-emerald-500 bg-emerald-500 text-[#0A2540] font-bold text-[10px]"
+                        : "border-white/15 bg-[#021B30]"
                     }`}
                   >
                     {isChecked ? "✓" : ""}
@@ -1224,7 +1224,7 @@ function DocsSection({
           <SectionTitle>Bayarin (Official Fees)</SectionTitle>
           <dl className="space-y-1 text-xs">
             {spec.fees.map((f, i) => (
-              <div key={i} className="flex justify-between border-b border-zinc-800 pb-1">
+              <div key={i} className="flex justify-between border-b border-white/10 pb-1">
                 <dt className="text-zinc-300">{f.item}</dt>
                 <dd className="font-bold text-violet-300">{f.amount}</dd>
               </div>
@@ -1238,14 +1238,14 @@ function DocsSection({
 
 function StepsList({ steps }: { steps: string[] }) {
   return (
-    <ol className="mt-3 space-y-2 border-t border-zinc-800/80 pt-3 sm:mt-4 sm:pt-4">
+    <ol className="mt-3 space-y-2 border-t border-white/10 pt-3 sm:mt-4 sm:pt-4">
       {steps.map((step, i) => (
         <li
           key={i}
           className="animate-fade-up flex gap-2 text-xs sm:text-sm leading-relaxed text-zinc-200 sm:gap-2.5"
           style={{ animationDelay: `${i * 40}ms` }}
         >
-          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-bold text-white transition-transform duration-150 hover:scale-110">
+          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/5 text-[10px] font-bold text-white transition-transform duration-150 hover:scale-110">
             {i + 1}
           </span>
           <span className="text-balance">{step}</span>

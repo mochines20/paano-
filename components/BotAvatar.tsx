@@ -18,12 +18,12 @@ export function BotAvatar({
 }: BotAvatarProps) {
   return (
     <span
-      className={`relative inline-block overflow-hidden rounded-full border border-zinc-700 bg-zinc-900 ${className}`}
+      className={`relative inline-block overflow-hidden rounded-full border border-white/15 bg-[#0A3D5C] ${className}`}
       style={{ width: size, height: size }}
     >
       {showPulse && (
         <span
-          className="animate-pulse-dot absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border border-zinc-950 bg-orange-500"
+          className="animate-pulse-dot absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border border-[#021B30] bg-[#FBE77A]"
           aria-hidden
         />
       )}
@@ -41,7 +41,7 @@ export function BotAvatar({
           if (parent) {
             const fallback = document.createElement("span");
             fallback.className =
-              "flex h-full w-full items-center justify-center text-[10px] font-black text-orange-500";
+              "flex h-full w-full items-center justify-center text-[10px] font-black text-[#FBE77A]";
             fallback.textContent = "P";
             parent.appendChild(fallback);
           }

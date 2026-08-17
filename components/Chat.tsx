@@ -281,10 +281,10 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[#050507]">
+    <div className="flex h-full min-h-0 flex-col bg-[#021B30]">
       {/* Offline banner */}
       {!isOnline && (
-        <div className="animate-slide-down flex items-center justify-center gap-2 bg-amber-950/80 px-4 py-1.5 text-center text-[11px] font-medium text-amber-200">
+        <div className="animate-slide-down flex items-center justify-center gap-2 border-b border-amber-400/20 bg-amber-500/10 px-4 py-1.5 text-center text-[11px] font-medium text-amber-200 backdrop-blur">
           <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.58 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" />
           </svg>
@@ -293,7 +293,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
       )}
 
       {/* Tab bar */}
-      <div className="flex items-center gap-1 border-b border-zinc-900 px-2.5 pt-2 sm:px-4">
+      <div className="flex items-center gap-1 border-b border-white/10 px-2.5 pt-2 sm:px-4">
         {([
           { key: "chat", label: "Chat" },
           { key: "saved", label: `Saved${savedAnswers.length > 0 ? ` (${savedAnswers.length})` : ""}` },
@@ -308,13 +308,13 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
             }}
             className={`relative rounded-t-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${
               tab === t.key
-                ? "text-orange-400"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "text-[#FBE77A]"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
             {t.label}
             {tab === t.key && (
-              <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-orange-500" />
+              <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-[#FBE77A]" />
             )}
           </button>
         ))}
@@ -327,19 +327,19 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           <div className="mx-auto max-w-2xl space-y-3">
             <h2 className="text-lg font-black text-white sm:text-xl">Naka-save na Sagot</h2>
             {savedAnswers.length === 0 ? (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 text-center">
-                <p className="text-sm text-zinc-400">
+              <div className="glass-card rounded-2xl p-6 text-center">
+                <p className="text-sm text-slate-400">
                   Wala pang naka-save na sagot. I-tap ang bookmark icon sa sagot para i-save.
                 </p>
               </div>
             ) : (
               savedAnswers.map((s) => (
-                <div key={s.id} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3.5">
+                <div key={s.id} className="glass-card rounded-2xl p-3.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium text-orange-400">{s.question}</p>
+                      <p className="truncate text-xs font-medium text-[#FBE77A]">{s.question}</p>
                       <h3 className="mt-0.5 text-sm font-bold text-white">{s.title}</h3>
-                      <p className="mt-0.5 text-[11px] text-zinc-500">
+                      <p className="mt-0.5 text-[11px] text-slate-400">
                         {new Date(s.savedAt).toLocaleDateString("fil-PH", { month: "short", day: "numeric", year: "numeric" })}
                       </p>
                     </div>
@@ -349,14 +349,14 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                           setTab("chat");
                           void send(s.question);
                         }}
-                        className="rounded-full bg-zinc-800 px-2.5 py-1 text-[10px] font-semibold text-zinc-300 transition-colors hover:bg-zinc-700 focus-ring"
+                        className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-semibold text-slate-200 backdrop-blur transition-colors hover:bg-white/10 focus-ring"
                       >
                         Buksan
                       </button>
                       <button
                         onClick={() => removeSaved(s.id)}
                         aria-label="Alisin sa saved"
-                        className="rounded-full bg-zinc-800 p-1.5 text-zinc-400 transition-colors hover:bg-red-900/40 hover:text-red-300 focus-ring"
+                        className="rounded-full border border-white/10 bg-white/5 p-1.5 text-slate-400 backdrop-blur transition-colors hover:bg-rose-500/20 hover:text-rose-300 focus-ring"
                       >
                         <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                           <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -375,8 +375,8 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           <div className="mx-auto max-w-2xl space-y-3">
             <h2 className="text-lg font-black text-white sm:text-xl">Mga Naunang Tanong</h2>
             {history.length === 0 ? (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 text-center">
-                <p className="text-sm text-zinc-400">
+              <div className="glass-card rounded-2xl p-6 text-center">
+                <p className="text-sm text-slate-400">
                   Wala pang history. Magtanong na sa PAANO!
                 </p>
               </div>
@@ -389,13 +389,13 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                       setTab("chat");
                       void send(h.question);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-left transition-all duration-150 hover:border-orange-500/40 hover:bg-zinc-900/70 active:scale-[0.98] focus-ring"
+                    className="glass-card flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all duration-150 hover:border-[#FBE77A]/40 active:scale-[0.98] focus-ring"
                   >
-                    <svg className="h-4 w-4 shrink-0 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <svg className="h-4 w-4 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       <path d="M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                     </svg>
-                    <span className="min-w-0 flex-1 truncate text-sm text-zinc-300">{h.question}</span>
-                    <span className="shrink-0 text-[10px] text-zinc-600">
+                    <span className="min-w-0 flex-1 truncate text-sm text-slate-200">{h.question}</span>
+                    <span className="shrink-0 text-[10px] text-slate-500">
                       {new Date(h.askedAt).toLocaleDateString("fil-PH", { month: "short", day: "numeric" })}
                     </span>
                   </button>
@@ -411,13 +411,13 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
             {messages.length === 0 && (
               <div className="mx-auto max-w-2xl space-y-5 pt-2 sm:space-y-6 sm:pt-4">
                 <div className="text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 shadow-lg shadow-orange-500/10 sm:mb-4 sm:h-14 sm:w-14">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#FBE77A]/25 bg-[#FBE77A]/10 shadow-lg shadow-[#FBE77A]/10 backdrop-blur sm:mb-4 sm:h-14 sm:w-14">
                     <BotAvatar size={36} showPulse className="rounded-2xl sm:size-11" />
                   </div>
                   <h2 className="text-lg font-black text-white sm:text-xl">
                     Ano ang gagawin mo ngayon?
                   </h2>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-zinc-400">
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-300">
                     Tanong sa Taglish — commute, lutong bahay, gawa-bahay, first aid,
                     o requirements ng government documents.
                   </p>
@@ -425,12 +425,12 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
 
                 {/* Rotating example */}
                 <div className="text-center">
-                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-600">
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                     Subukan ito
                   </p>
                   <button
                     onClick={() => void send(ROTATING_EXAMPLES[rotatingIndex])}
-                    className="animate-fade-up inline-block max-w-full truncate rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-medium text-orange-300 transition-all duration-200 hover:bg-orange-500/20 active:scale-95 focus-ring"
+                    className="animate-fade-up inline-block max-w-full truncate rounded-full border border-[#FBE77A]/30 bg-[#FBE77A]/10 px-4 py-2 text-sm font-medium text-[#FBE77A] backdrop-blur transition-all duration-200 hover:bg-[#FBE77A]/20 active:scale-95 focus-ring"
                     key={rotatingIndex}
                   >
                     {ROTATING_EXAMPLES[rotatingIndex]}
@@ -439,7 +439,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
 
                 {trending.length > 0 && (
                   <div>
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-orange-400">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#FBE77A]">
                       Pinapagtanungan ngayon
                     </p>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -447,7 +447,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                         <button
                           key={s}
                           onClick={() => void send(s)}
-                          className="rounded-full bg-orange-500/10 px-2.5 py-1.5 text-[11px] font-medium text-orange-300 ring-1 ring-orange-500/30 transition-all duration-150 hover:bg-orange-500/20 active:scale-95 focus-ring sm:px-3 sm:text-xs"
+                          className="rounded-full bg-[#FBE77A]/10 px-2.5 py-1.5 text-[11px] font-medium text-[#FBE77A] ring-1 ring-[#FBE77A]/30 backdrop-blur transition-all duration-150 hover:bg-[#FBE77A]/20 active:scale-95 focus-ring sm:px-3 sm:text-xs"
                         >
                           {s}
                         </button>
@@ -457,7 +457,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                 )}
 
                 <div>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                     Simulan sa kategorya
                   </p>
                   <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5 sm:gap-2">
@@ -465,20 +465,20 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                       <button
                         key={c.label}
                         onClick={() => void send(c.query)}
-                        className="group animate-fade-up flex flex-col items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/60 p-2.5 text-center transition-all duration-150 hover:border-orange-500/60 hover:bg-zinc-900 active:scale-[0.98] focus-ring sm:flex-row sm:items-start sm:text-left sm:p-3"
+                        className="glass-card group animate-fade-up flex flex-col items-center gap-1.5 rounded-xl p-2.5 text-center transition-all duration-150 hover:border-[#FBE77A]/40 active:scale-[0.98] focus-ring sm:flex-row sm:items-start sm:text-left sm:p-3"
                         style={{ animationDelay: `${120 + i * 60}ms` }}
                       >
-                        <span className="text-orange-500 transition-transform duration-150 group-hover:scale-110">
+                        <span className="text-[#FBE77A] transition-transform duration-150 group-hover:scale-110">
                           <c.icon className="h-5 w-5" />
                         </span>
-                        <span className="text-[11px] font-semibold text-zinc-200 sm:text-xs">{c.label}</span>
+                        <span className="text-[11px] font-semibold text-slate-200 sm:text-xs">{c.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                     O piliin ang halimbawa
                   </p>
                   <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -486,7 +486,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                       <button
                         key={s}
                         onClick={() => void send(s)}
-                        className="animate-fade-up rounded-full border border-zinc-800 bg-zinc-900/60 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition-all duration-150 hover:border-orange-500/60 hover:text-orange-300 active:scale-95 focus-ring sm:px-3 sm:text-xs"
+                        className="glass-pill animate-fade-up rounded-full px-2.5 py-1.5 text-[11px] font-medium text-slate-300 backdrop-blur transition-all duration-150 hover:border-[#FBE77A]/40 hover:text-[#FBE77A] active:scale-95 focus-ring sm:px-3 sm:text-xs"
                         style={{ animationDelay: `${100 + SUGGESTIONS.indexOf(s) * 40}ms` }}
                       >
                         {s}
@@ -507,11 +507,11 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                         <img
                           src={m.image}
                           alt="Attached"
-                          className="ml-auto h-24 w-24 rounded-2xl border border-zinc-700 object-cover shadow-md sm:h-28 sm:w-28"
+                          className="ml-auto h-24 w-24 rounded-2xl border border-white/15 object-cover shadow-md sm:h-28 sm:w-28"
                         />
                       )}
                       <div className="flex items-end justify-end gap-2">
-                        <p className="rounded-2xl rounded-br-sm bg-orange-500 px-3.5 py-2 text-sm font-medium text-zinc-950 shadow-md shadow-orange-500/20 sm:px-4 sm:py-2.5">
+                        <p className="rounded-2xl rounded-br-sm bg-[#FBE77A] px-3.5 py-2 text-sm font-medium text-[#0A2540] shadow-md shadow-[#FBE77A]/20 sm:px-4 sm:py-2.5">
                           {m.content}
                         </p>
                       </div>
@@ -524,12 +524,12 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                       <div className="min-w-0 flex-1 space-y-2">
                         {m.answer && <AnswerCard answer={m.answer} question={m.content} />}
                         {m.error && (
-                          <div className="rounded-2xl border border-red-800/40 bg-red-950/40 p-4">
-                            <p className="text-sm text-red-200">{m.error}</p>
+                          <div className="glass-card rounded-2xl border-rose-400/30 bg-rose-500/10 p-4">
+                            <p className="text-sm text-rose-200">{m.error}</p>
                             {m.retryQuestion && (
                               <button
                                 onClick={() => void send(m.retryQuestion!)}
-                                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-red-900/60 px-3 py-1 text-xs font-semibold text-red-100 transition-all duration-150 hover:bg-red-800/60 active:scale-95 focus-ring"
+                                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-rose-500/30 px-3 py-1 text-xs font-semibold text-rose-100 backdrop-blur transition-all duration-150 hover:bg-rose-500/40 active:scale-95 focus-ring"
                               >
                                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                                   <path d="M4 4v6h6M20 20v-6h-6M4 10a9 9 0 0 1 14-3.5l3-3M20 14a9 9 0 0 1-14 3.5l-3 3" />
@@ -545,7 +545,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                               <button
                                 key={s}
                                 onClick={() => void send(s)}
-                                className="animate-pop rounded-full border border-zinc-800 bg-zinc-900/70 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-all duration-150 hover:border-orange-500/60 hover:text-orange-300 active:scale-95 focus-ring"
+                                className="glass-pill animate-pop rounded-full px-3 py-1 text-[11px] font-medium text-slate-300 backdrop-blur transition-all duration-150 hover:border-[#FBE77A]/40 hover:text-[#FBE77A] active:scale-95 focus-ring"
                               >
                                 {s}
                               </button>
@@ -561,7 +561,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
               {loading && (
                 <div className="animate-fade-up flex items-start gap-2 sm:gap-2.5">
                   <BotAvatar size={24} className="shrink-0 sm:size-7" />
-                  <div className="min-w-0 flex-1 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3.5 shadow-md sm:p-4">
+                  <div className="glass-card min-w-0 flex-1 overflow-hidden rounded-2xl p-3.5 shadow-md sm:p-4">
                     <div className="skeleton mb-3 h-4 w-24 rounded-full" />
                     <div className="skeleton mb-2 h-5 w-2/3 rounded-md" />
                     <div className="skeleton mb-4 h-3 w-full rounded" />
@@ -569,11 +569,11 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                     <div className="skeleton mb-2 h-3 w-5/6 rounded" />
                     <div className="skeleton mb-3 h-3 w-2/3 rounded" />
                     <div className="skeleton h-16 w-full rounded-xl" />
-                    <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                    <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
                       <span className="flex gap-1">
-                        <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-orange-500 [animation-delay:0ms]" />
-                        <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-orange-500 [animation-delay:160ms]" />
-                        <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-orange-500 [animation-delay:320ms]" />
+                        <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-[#FBE77A] [animation-delay:0ms]" />
+                        <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-[#FBE77A] [animation-delay:160ms]" />
+                        <span className="animate-bounce-soft h-1.5 w-1.5 rounded-full bg-[#FBE77A] [animation-delay:320ms]" />
                       </span>
                       Nag-iisip ang PAANO…
                     </div>
@@ -590,7 +590,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           <button
             onClick={jumpToBottom}
             aria-label="Pumunta sa pinakabagong sagot"
-            className="animate-pop absolute -top-12 left-1/2 z-10 -translate-x-1/2 rounded-full border border-zinc-700 bg-zinc-900/95 p-2.5 text-zinc-300 shadow-lg shadow-black/40 backdrop-blur transition-all duration-150 hover:border-orange-500/60 hover:text-orange-300 active:scale-90 focus-ring"
+            className="glass-strong animate-pop absolute -top-12 left-1/2 z-10 -translate-x-1/2 rounded-full p-2.5 text-slate-200 shadow-lg backdrop-blur-xl transition-all duration-150 hover:border-[#FBE77A]/40 hover:text-[#FBE77A] active:scale-90 focus-ring"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M12 5v14M19 12l-7 7-7-7" />
@@ -603,36 +603,36 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
       {tab === "chat" && (
         <form
           onSubmit={onSubmit}
-          className="border-t border-zinc-900 bg-[#050507]/95 p-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:p-3"
+          className="border-t border-white/10 bg-[#021B30]/80 p-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl backdrop-saturate-150 sm:p-3"
         >
           {/* Active Voice Waveform Visualizer */}
           {listening && (
-            <div className="animate-slide-down mx-auto mb-2.5 flex max-w-2xl items-center justify-between rounded-2xl border border-orange-500/40 bg-orange-500/10 px-4 py-2 text-xs font-semibold text-orange-300">
+            <div className="animate-slide-down mx-auto mb-2.5 flex max-w-2xl items-center justify-between rounded-2xl border border-[#FBE77A]/40 bg-[#FBE77A]/10 px-4 py-2 text-xs font-semibold text-[#FBE77A] backdrop-blur">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-orange-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFE98A] opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#FBE77A]" />
                 </span>
                 <span>Nakikinig si PAANO… Sabihin ang iyong tanong</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="animate-wave-1 w-1 rounded-full bg-orange-400" />
-                <span className="animate-wave-2 w-1 rounded-full bg-orange-400" />
-                <span className="animate-wave-3 w-1 rounded-full bg-orange-400" />
-                <span className="animate-wave-4 w-1 rounded-full bg-orange-400" />
-                <span className="animate-wave-5 w-1 rounded-full bg-orange-400" />
+                <span className="animate-wave-1 w-1 rounded-full bg-[#FBE77A]" />
+                <span className="animate-wave-2 w-1 rounded-full bg-[#FBE77A]" />
+                <span className="animate-wave-3 w-1 rounded-full bg-[#FBE77A]" />
+                <span className="animate-wave-4 w-1 rounded-full bg-[#FBE77A]" />
+                <span className="animate-wave-5 w-1 rounded-full bg-[#FBE77A]" />
               </div>
             </div>
           )}
 
-          <div className="mx-auto flex max-w-2xl items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/80 p-1.5 pl-3.5 shadow-md shadow-black/30 backdrop-blur focus-within:border-orange-500/60 focus-within:ring-1 focus-within:ring-orange-500/20 sm:gap-2 sm:pl-4">
+          <div className="mx-auto flex max-w-2xl items-center gap-1.5 rounded-full border border-white/10 bg-white/5 p-1.5 pl-3.5 shadow-lg shadow-[#001525]/30 backdrop-blur-xl backdrop-saturate-150 focus-within:border-[#FBE77A]/50 focus-within:ring-1 focus-within:ring-[#FBE77A]/25 sm:gap-2 sm:pl-4">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={listening ? "Nakikinig…" : 'Hal. "Paano magcommute papuntang Quiapo?"'}
               disabled={loading}
               maxLength={1000}
-              className="min-w-0 flex-1 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+              className="min-w-0 flex-1 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-slate-400"
             />
             <input
               ref={fileInputRef}
@@ -651,8 +651,8 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                 aria-label="Voice input"
                 className={`shrink-0 rounded-full p-2 transition-all duration-150 active:scale-95 focus-ring disabled:opacity-40 sm:p-2.5 ${
                   listening
-                    ? "bg-orange-500/20 text-orange-300 animate-pulse-dot"
-                    : "text-zinc-400 hover:bg-zinc-800 hover:text-orange-300"
+                    ? "bg-[#FBE77A]/20 text-[#FBE77A] animate-pulse-dot"
+                    : "text-slate-400 hover:bg-white/10 hover:text-[#FBE77A]"
                 }`}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -667,7 +667,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
               disabled={loading}
               title="Litrato ng sangkap → anong ulam?"
               aria-label="Mag-attach ng litrato ng sangkap"
-              className="shrink-0 rounded-full p-2 text-zinc-400 transition-all duration-150 hover:bg-zinc-800 hover:text-orange-300 active:scale-95 focus-ring disabled:opacity-40 sm:p-2.5"
+              className="shrink-0 rounded-full p-2 text-slate-400 transition-all duration-150 hover:bg-white/10 hover:text-[#FBE77A] active:scale-95 focus-ring disabled:opacity-40 sm:p-2.5"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 8h3l2-2h6l2 2h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
@@ -677,34 +677,34 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
             <button
               type="submit"
               disabled={loading || (!input.trim() && !pendingImage)}
-              className="shrink-0 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-zinc-950 shadow-md shadow-orange-500/20 transition-all duration-150 hover:bg-orange-400 active:scale-95 focus-ring disabled:opacity-40 sm:px-5 sm:py-2.5 sm:text-sm"
+              className="shrink-0 rounded-full bg-[#FBE77A] px-4 py-2 text-xs font-bold text-[#0A2540] shadow-md shadow-[#FBE77A]/20 transition-all duration-150 hover:bg-[#FFE98A] active:scale-95 focus-ring disabled:opacity-40 sm:px-5 sm:py-2.5 sm:text-sm"
             >
               Itanong
             </button>
           </div>
 
           {pendingImage && (
-            <div className="mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 p-2">
+            <div className="glass-card mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-xl p-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={pendingImage}
                 alt="Preview"
-                className="h-10 w-10 shrink-0 rounded-lg border border-zinc-700 object-cover sm:h-12 sm:w-12"
+                className="h-10 w-10 shrink-0 rounded-lg border border-white/15 object-cover sm:h-12 sm:w-12"
               />
-              <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-400">
+              <span className="min-w-0 flex-1 truncate text-[11px] text-slate-400">
                 Sangkap photo — sasabihin ng PAANO kung anong ulam ang kaya.
               </span>
               <button
                 type="button"
                 onClick={() => setPendingImage(null)}
-                className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold text-zinc-400 hover:text-zinc-200 focus-ring"
+                className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold text-slate-400 hover:text-slate-200 focus-ring"
               >
                 Alisin
               </button>
             </div>
           )}
 
-          <p className="mx-auto mt-2 max-w-2xl text-center text-[10px] leading-relaxed text-zinc-600">
+          <p className="mx-auto mt-2 max-w-2xl text-center text-[10px] leading-relaxed text-slate-500">
             Hindi doktor/abogado/ahensya ang PAANO. I-verify sa opisyal na source
             bago kumilos.
           </p>

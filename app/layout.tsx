@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f97316",
+  themeColor: "#003153",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -39,11 +39,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
       </head>
-      <body className="flex min-h-full flex-col overflow-x-hidden bg-[#050507] text-zinc-100">
+      <body className="flex min-h-full flex-col overflow-x-hidden bg-[#021B30] text-zinc-100">
         <PwaRegister />
         <Header />
         {children}
-        <footer className="mt-auto border-t border-zinc-900 px-4 py-5 text-center text-[12px] leading-relaxed text-zinc-500 sm:py-6 sm:text-[13px]">
+        <footer className="mt-auto border-t border-white/10 px-4 py-5 text-center text-[12px] leading-relaxed text-slate-400 sm:py-6 sm:text-[13px] backdrop-blur-sm">
           PAANO — hindi opisyal na source ng gobyerno o medikal na payo.
           <br />
           I-verify sa opisyal na ahensya bago kumilos.

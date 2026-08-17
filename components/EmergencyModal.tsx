@@ -117,10 +117,10 @@ export function EmergencyModal({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-4 animate-fade-up">
-      <div className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-rose-500/40 bg-zinc-950 shadow-2xl shadow-rose-950/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#021B30]/70 p-3 backdrop-blur-md sm:p-4 animate-fade-up">
+      <div className="glass-strong relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border-rose-400/30 shadow-2xl shadow-rose-950/40">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-rose-900/60 via-red-900/50 to-zinc-900 p-4 border-b border-rose-500/30">
+        <div className="bg-gradient-to-r from-rose-900/40 via-rose-800/30 to-transparent p-4 border-b border-rose-400/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/40">
@@ -146,7 +146,7 @@ export function EmergencyModal({
             <button
               onClick={onClose}
               aria-label="Isara ang emergency hotlines"
-              className="rounded-full bg-zinc-800/80 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white active:scale-95 transition-colors focus-ring"
+              className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 backdrop-blur hover:bg-white/10 hover:text-white active:scale-95 transition-colors focus-ring"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -170,7 +170,7 @@ export function EmergencyModal({
                 className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all ${
                   filter === tab.id
                     ? "bg-rose-500 text-zinc-950 shadow-md shadow-rose-500/20"
-                    : "bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-zinc-800"
+                    : "bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 backdrop-blur"
                 }`}
               >
                 {tab.label}
@@ -180,12 +180,12 @@ export function EmergencyModal({
         </div>
 
         {/* Search input */}
-        <div className="p-3 border-b border-zinc-900 bg-zinc-900/40">
+        <div className="p-3 border-b border-white/10 bg-white/5 backdrop-blur">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Maghanap ng ahensya o emergency (hal. 'sunog', 'ambulansya', 'lason')..."
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-xs text-white placeholder:text-zinc-500 outline-none focus:border-rose-500"
+            className="w-full rounded-xl border border-white/10 bg-[#021B30]/40 px-3.5 py-2 text-xs text-white placeholder:text-slate-400 outline-none backdrop-blur focus:border-rose-400"
           />
         </div>
 
@@ -229,7 +229,7 @@ export function EmergencyModal({
                 .map((hotline) => (
                   <div
                     key={hotline.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3.5 transition-all hover:border-rose-500/40 hover:bg-zinc-900"
+                    className="glass-card flex items-center justify-between gap-3 rounded-2xl p-3.5 transition-all hover:border-rose-400/40"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export function EmergencyModal({
         </div>
 
         {/* Footer tips + disclaimers */}
-        <div className="space-y-2 bg-zinc-950 p-3 border-t border-zinc-900">
+        <div className="space-y-2 bg-[#021B30]/40 p-3 border-t border-white/10 backdrop-blur">
           <p className="text-center text-[10px] text-zinc-400">
             Tip sa pagtawag: Sabihin agad ang iyong <span className="text-zinc-200 font-bold">lokasyon</span> at <span className="text-zinc-200 font-bold">kung may nasugatan</span> bago magpaliwanag.
           </p>

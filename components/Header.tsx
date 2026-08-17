@@ -15,7 +15,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-zinc-900/80 bg-[#050507]/90 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#021B30]/70 backdrop-blur-xl backdrop-saturate-150">
         <nav className="mx-auto flex max-w-3xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="flex items-center gap-2.5">
             <Link
@@ -23,10 +23,10 @@ export function Header() {
               className="flex items-center gap-1 text-lg font-black tracking-tight text-white transition-opacity hover:opacity-90 active:scale-95 sm:text-xl"
             >
               PAANO
-              <span className="animate-pulse-dot text-orange-500">.</span>
+              <span className="animate-pulse-dot text-[#FBE77A]">.</span>
             </Link>
-            <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 sm:inline-flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
+            <span className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-[#FBE77A] backdrop-blur sm:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FBE77A] animate-pulse-dot" />
               Transit & Hub Grounded
             </span>
           </div>
@@ -37,9 +37,9 @@ export function Header() {
               onClick={() => setShowEmergency(true)}
               aria-label="Buksan ang Saklolo emergency hotlines"
               title="Saklolo (911 / Red Cross / MMDA / Crisis Hotlines)"
-              className="flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-500/10 px-2.5 py-1 text-xs font-bold text-rose-300 transition-all hover:bg-rose-500/20 active:scale-95 focus-ring sm:px-3 sm:py-1.5"
+              className="flex items-center gap-1 rounded-full border border-rose-400/30 bg-rose-500/15 px-2.5 py-1 text-xs font-bold text-rose-200 backdrop-blur transition-all hover:bg-rose-500/25 active:scale-95 focus-ring sm:px-3 sm:py-1.5"
             >
-              <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+              <span className="h-2 w-2 rounded-full bg-rose-400 animate-ping" />
               Saklolo
             </button>
 
@@ -48,7 +48,7 @@ export function Header() {
               aria-label={theme === "dark" ? "Mag-light mode" : "Mag-dark mode"}
               title={theme === "dark" ? "Mag-light mode" : "Mag-dark mode"}
               suppressHydrationWarning
-              className="rounded-full bg-zinc-800 p-2 text-zinc-400 transition-all duration-150 hover:bg-zinc-700 hover:text-orange-300 active:scale-95 focus-ring sm:p-2.5"
+              className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 backdrop-blur transition-all duration-150 hover:bg-white/10 hover:text-[#FBE77A] active:scale-95 focus-ring sm:p-2.5"
             >
               {theme === "dark" ? (
                 <svg
@@ -82,10 +82,10 @@ export function Header() {
             <Link
               href="/paano"
               aria-current={onPaano ? "page" : undefined}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 focus-ring sm:px-4 sm:text-sm ${
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold backdrop-blur transition-all duration-150 active:scale-95 focus-ring sm:px-4 sm:text-sm ${
                 onPaano
-                  ? "bg-orange-500 text-zinc-950 shadow-md shadow-orange-500/20 hover:bg-orange-400"
-                  : "bg-zinc-800 text-zinc-100 hover:bg-zinc-700"
+                  ? "bg-[#FBE77A] text-[#0A2540] shadow-md shadow-[#FBE77A]/20 hover:bg-[#FFE98A]"
+                  : "border border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
               }`}
             >
               Itanong

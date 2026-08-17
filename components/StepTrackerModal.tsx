@@ -153,9 +153,9 @@ export function StepTrackerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#050507] text-white animate-fade-up">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#021B30] text-white animate-fade-up">
       {/* Top App Bar */}
-      <header className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-4 py-3 backdrop-blur-md">
+      <header className="flex items-center justify-between border-b border-white/10 bg-[#021B30]/80 px-4 py-3 backdrop-blur-xl backdrop-saturate-150">
         <div className="flex items-center gap-2.5">
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
@@ -179,7 +179,7 @@ export function StepTrackerModal({
         <button
           onClick={onClose}
           aria-label="Isara ang step tracker"
-          className="rounded-full bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors active:scale-95 focus-ring"
+          className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 backdrop-blur hover:bg-white/10 hover:text-white transition-colors active:scale-95 focus-ring"
         >
           Tapusin (Exit) ✕
         </button>
@@ -198,7 +198,7 @@ export function StepTrackerModal({
             </span>
           </div>
 
-          <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-white/10">
             <div
               className={`h-full transition-all duration-300 ${
                 isCooking
@@ -218,19 +218,19 @@ export function StepTrackerModal({
             className={`rounded-3xl border p-6 sm:p-8 shadow-2xl transition-all ${
               completedSteps[currentStep]
                 ? "border-emerald-500/40 bg-emerald-950/20"
-                : "border-zinc-800 bg-zinc-900/60"
+                : "border-white/10 bg-white/5 backdrop-blur"
             }`}
           >
             <div className="mb-4 flex items-center justify-between">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500 text-base font-black text-zinc-950 shadow-md">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#FBE77A] text-base font-black text-[#0A2540] shadow-md">
                 {currentStep + 1}
               </span>
               <button
                 onClick={() => toggleStepDone(currentStep)}
                 className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
                   completedSteps[currentStep]
-                    ? "bg-emerald-500 text-zinc-950"
-                    : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                    ? "bg-emerald-500 text-[#0A2540]"
+                    : "bg-white/5 text-slate-400 hover:text-slate-200"
                 }`}
               >
                 {completedSteps[currentStep] ? "✓ Tapos na" : "Mark as done"}
@@ -261,7 +261,7 @@ export function StepTrackerModal({
                   className={`rounded-full px-4 py-2 text-xs font-black transition-all ${
                     timerRunning
                       ? "bg-rose-500 text-white hover:bg-rose-600"
-                      : "bg-amber-500 text-zinc-950 hover:bg-amber-400 shadow-md shadow-amber-500/20"
+                      : "bg-amber-500 text-[#0A2540] hover:bg-amber-400 shadow-md shadow-amber-500/20"
                   }`}
                 >
                   {timerRunning ? "Pause" : activeTimerSeconds === 0 ? "Ulitin" : "Simulan ang Timer"}
@@ -270,7 +270,7 @@ export function StepTrackerModal({
                   onClick={() =>
                     setCustomTimerSeconds((prev) => ((prev ?? defaultStepSeconds ?? 0) + 60))
                   }
-                  className="rounded-full bg-zinc-800 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-zinc-700"
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-300 backdrop-blur hover:bg-white/10"
                 >
                   +1 min
                 </button>
@@ -285,7 +285,7 @@ export function StepTrackerModal({
             <button
               onClick={() => goToStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900 py-4 text-sm font-bold text-zinc-300 transition-all hover:bg-zinc-800 disabled:opacity-30 active:scale-98"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-4 text-sm font-bold text-slate-300 backdrop-blur transition-all hover:bg-white/10 disabled:opacity-30 active:scale-98"
             >
               ← Naunang Hakbang
             </button>
@@ -293,14 +293,14 @@ export function StepTrackerModal({
             {currentStep === steps.length - 1 ? (
               <button
                 onClick={onClose}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 text-sm font-black text-zinc-950 shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-400 active:scale-98"
+                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 text-sm font-black text-[#0A2540] shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-400 active:scale-98"
               >
                 Tapos na ang Lahat! ✓
               </button>
             ) : (
               <button
                 onClick={() => goToStep(Math.min(steps.length - 1, currentStep + 1))}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-black text-zinc-950 shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-400 active:scale-98"
+                className="flex items-center justify-center gap-2 rounded-2xl bg-[#FBE77A] py-4 text-sm font-black text-[#0A2540] shadow-lg shadow-[#FBE77A]/30 transition-all hover:bg-[#FFE98A] active:scale-98"
               >
                 Susunod na Hakbang →
               </button>
@@ -319,7 +319,7 @@ export function StepTrackerModal({
                     ? "w-8 bg-orange-500"
                     : completedSteps[idx]
                     ? "w-2.5 bg-emerald-500"
-                    : "w-2.5 bg-zinc-800 hover:bg-zinc-700"
+                    : "w-2.5 bg-white/10 hover:bg-white/20"
                 }`}
               />
             ))}

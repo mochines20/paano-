@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges">
   <defs>
     <style>
-      .bg { fill: #0d0d10; }
-      .skin { fill: #27272e; }
-      .accent { fill: #f97316; }
-      .light { fill: #fb923c; }
-      .dim { fill: #9a3412; }
-      .eye { fill: #f97316; }
+      .bg { fill: #0A3D5C; }
+      .skin { fill: #125070; }
+      .accent { fill: #FBE77A; }
+      .light { fill: #FFE98A; }
+      .dim { fill: #E8C95C; }
+      .eye { fill: #FBE77A; }
       .glint { fill: #ffffff; }
-      .line { fill: #3f3f46; }
+      .line { fill: #1B5E8A; }
     </style>
   </defs>
 
