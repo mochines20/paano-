@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export interface Hotline {
   id: string;
@@ -103,6 +103,16 @@ export function EmergencyModal({
 }) {
   const [filter, setFilter] = useState<Hotline["category"]>("all");
   const [search, setSearch] = useState("");
+
+  // Escape-to-close para sa desktop accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

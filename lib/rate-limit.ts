@@ -29,8 +29,8 @@ export interface RateLimitResult {
   scope: "daily" | "burst";
 }
 
-const DAILY_LIMIT = Number(process.env.PAANO_DAILY_LIMIT) || 15;
-const BURST_LIMIT = Number(process.env.PAANO_BURST_LIMIT) || 5;
+const DAILY_LIMIT = Number(process.env.PAANO_DAILY_LIMIT) || 40;
+const BURST_LIMIT = Number(process.env.PAANO_BURST_LIMIT) || 8;
 const BURST_WINDOW_MS = 60_000;
 
 export function checkRateLimit(ip: string): RateLimitResult {
@@ -78,4 +78,13 @@ export function checkRateLimit(ip: string): RateLimitResult {
 /** Para sa tests/debug. */
 export function resetRateLimits(): void {
   buckets.clear();
+}
+
+/** Peek lang ng remaining count — HUWAG mag-increment. Para sa cache hits
+ * na gusto lang mag-report ng remaining sa UI hindi nagco-consume ng quota. */
+export function peekRemaining(ip: string): number {
+  const key = ip || "unknown";
+  const bucket = buckets.get(key);
+  if (!bucket || bucket.daily.day !== todayKey()) return DAILY_LIMIT;
+  return Math.max(0, DAILY_LIMIT - bucket.daily.count);
 }

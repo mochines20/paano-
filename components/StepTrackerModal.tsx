@@ -132,6 +132,16 @@ export function StepTrackerModal({
     };
   }, [timerRunning, activeTimerSeconds, defaultStepSeconds, playAlertSound]);
 
+  // Escape-to-close para sa desktop accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen || steps.length === 0) return null;
 
   const isCooking = category === "cooking";

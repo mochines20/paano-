@@ -103,6 +103,7 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
   const [savedAnswers, setSavedAnswers] = useState<SavedAnswer[]>(() => getSavedAnswers());
   const [history, setHistory] = useState<HistoryItem[]>(() => getHistory());
   const [rotatingIndex, setRotatingIndex] = useState(0);
+  const [remaining, setRemaining] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSentRef = useRef(false);
@@ -223,6 +224,9 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           setTimeout(() => void send(question, retries + 1), 1500);
           return;
         }
+        if (res.status === 429 && typeof data.remaining === "number") {
+          setRemaining(data.remaining);
+        }
         push({
           id: nextId++,
           role: "assistant",
@@ -230,6 +234,9 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           retryQuestion: question,
         });
         return;
+      }
+      if (typeof data.remaining === "number") {
+        setRemaining(data.remaining);
       }
       push({
         id: nextId++,
@@ -537,6 +544,25 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
                                 Subukan muli
                               </button>
                             )}
+                            {/* Alternative suggestions para hindi ma-frustrate ang user */}
+                            {m.retryQuestion && (
+                              <div className="mt-3 border-t border-rose-400/20 pt-3">
+                                <p className="mb-2 text-[11px] font-medium text-rose-300/80">
+                                  O subukan ang isa pa:
+                                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {SUGGESTIONS.slice(0, 3).map((s) => (
+                                    <button
+                                      key={s}
+                                      onClick={() => void send(s)}
+                                      className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-medium text-slate-300 ring-1 ring-white/10 backdrop-blur transition-all duration-150 hover:bg-white/10 hover:text-[#FBE77A] active:scale-95 focus-ring"
+                                    >
+                                      {s}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                         {m.suggestions && m.suggestions.length > 0 && (
@@ -707,6 +733,12 @@ export function Chat({ initialQuestion }: { initialQuestion?: string }) {
           <p className="mx-auto mt-2 max-w-2xl text-center text-[10px] leading-relaxed text-slate-500">
             Hindi doktor/abogado/ahensya ang PAANO. I-verify sa opisyal na source
             bago kumilos.
+            {remaining !== null && remaining <= 10 && remaining > 0 && (
+              <span className="ml-1 text-amber-400/80">· {remaining} tanong pa para ngayong araw</span>
+            )}
+            {remaining === 0 && (
+              <span className="ml-1 text-amber-400/80">· Naabot na ang daily limit. Balik bukas!</span>
+            )}
           </p>
         </form>
       )}

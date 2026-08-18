@@ -3,7 +3,7 @@ import { PipelineError, runAnswerPipeline } from "@/lib/pipeline";
 import { fallbackAnswer } from "@/lib/answers";
 import type { ChatMessage } from "@/lib/answers";
 import { logQuestion } from "@/lib/logging";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, peekRemaining } from "@/lib/rate-limit";
 import { getCachedAnswer, setCachedAnswer } from "@/lib/cache";
 
 /**
@@ -77,22 +77,24 @@ export async function POST(req: Request) {
   if (!body.image && queryText && messages.length <= 2) {
     const cached = getCachedAnswer(queryText);
     if (cached) {
+      // Cache hits don't consume rate limit — peek lang ng remaining para sa UI
       return NextResponse.json({
         answer: cached.answer,
         suggestions: cached.suggestions,
         cached: true,
+        remaining: peekRemaining(clientIp ?? "unknown"),
       });
     }
   }
 
-  // Rate limit (cost control — libreng tier): 15 tanong/araw + burst.
+  // Rate limit (cost control — libreng tier): 40 tanong/araw + burst.
   const limit = checkRateLimit(clientIp ?? "unknown");
   if (!limit.ok) {
     const res = NextResponse.json(
       {
         error:
           limit.scope === "daily"
-            ? "Naabot mo na ang libreng limit (15 tanong/araw). Balik ka bukas."
+            ? "Narating mo na ang daily limit ng PAANO para ngayon. Balik ka bukas para sa bagong tanong — o i-save ang mga sagot mo para balikan anytime!"
             : "Masyadong mabilis ang pagtatanong. Sandali lang at subukan muli.",
         remaining: limit.remaining,
       },
@@ -132,6 +134,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       answer: result.answer,
       suggestions: result.suggestions,
+      remaining: limit.remaining,
     });
   } catch (err) {
     if (err instanceof PipelineError) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const MODE_OPTIONS = [
@@ -40,6 +40,16 @@ export function CommuteForm({
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [selectedModes, setSelectedModes] = useState<string[]>([]);
+
+  // Escape-to-close para sa desktop accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

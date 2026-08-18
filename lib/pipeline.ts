@@ -58,6 +58,111 @@ const CATEGORY_SUGGESTIONS: Record<string, string[]> = {
   first_aid: ["Paano maiiwasan ang ganitong klaseng paso o kagat?"],
 };
 
+/** Build contextual follow-up suggestions based on the actual answer.
+ * Hinahanap ang keywords sa title/summary para mas relevant ang chips.
+ * Fallback sa category defaults kung walang match. */
+function contextualSuggestions(answer: PaanoAnswer): string[] {
+  const text = `${answer.title} ${answer.summary}`.toLowerCase();
+  const spec = answer.category_specific;
+
+  // Commute: kung may specific origin/destination, gamitin sa suggestion
+  if (answer.category === "commute" && spec?.category === "commute") {
+    const dest = spec.destination;
+    const origin = spec.origin;
+    if (dest && dest !== "?") {
+      return [
+        `May P2P bus ba papuntang ${dest}?`,
+        `Paano kung galing ${origin && origin !== "?" ? origin : "iba"} sa rush hour?`,
+        `Anong oras ang pinakamabilis papuntang ${dest}?`,
+      ].slice(0, 3);
+    }
+    return CATEGORY_SUGGESTIONS.commute;
+  }
+
+  // Cooking: kung may dish name, gamitin sa variation suggestions
+  if (answer.category === "cooking" && spec?.category === "cooking") {
+    const dish = answer.title.toLowerCase();
+    if (dish.includes("adobo")) {
+      return [
+        "Pwede bang pork adobo naman?",
+        "Paano ang adobo sa gata?",
+        "Anong side dish ang bagay sa adobo?",
+      ];
+    }
+    if (dish.includes("sinigang")) {
+      return [
+        "Paano ang sinigang na isda?",
+        "Anong iba pang sampalok alternatibo?",
+        "Paano kung mas maasim ang gusto?",
+      ];
+    }
+    if (dish.includes("pancit") || dish.includes("pansit")) {
+      return [
+        "Paano ang pancit canton na bilog?",
+        "Anong ulam ang bagay sa pancit?",
+        "Paano kung vegetarian ang pancit?",
+      ];
+    }
+    if (spec.servings && spec.servings.includes("10")) {
+      return ["Paano kung para sa 20 tao?", "Anong ulam ang pwedeng kasama nito?"];
+    }
+    return CATEGORY_SUGGESTIONS.cooking;
+  }
+
+  // Docs: kung may agency, i-suggest ang related documents
+  if (answer.category === "docs" && spec?.category === "docs") {
+    const agency = spec.agency.toLowerCase();
+    if (agency.includes("nbi")) {
+      return ["Paano kung may hit ako sa NBI?", "Saan ang nearest NBI branch sa akin?"];
+    }
+    if (agency.includes("passport") || agency.includes("dfa")) {
+      return ["Magkano ang rush processing ng passport?", "Anong valid IDs ang tatanggapin?"];
+    }
+    if (agency.includes("lto") || agency.includes("driver")) {
+      return ["Paano kung expired na ng 2 taon?", "Anong requirements sa student permit?"];
+    }
+    if (agency.includes("sss")) {
+      return ["Paano mag-apply ng SSS ID online?", "Anong benefits ng SSS member?"];
+    }
+    return ["Paano kung nawala ang resibo?", "Saan ang nearest branch?"];
+  }
+
+  // First aid: kung may specific condition, i-suggest prevention
+  if (answer.category === "first_aid" && spec?.category === "first_aid") {
+    if (text.includes("burn") || text.includes("paso")) {
+      return ["Paano maiiwasan ang paso sa kusina?", "Anong first aid kit dapat meron sa bahay?"];
+    }
+    if (text.includes("cut") || text.includes("gasgas") || text.includes("sugat")) {
+      return ["Paano malulagnat ang sugat?", "Kailan kailangan ng tetanus shot?"];
+    }
+    if (text.includes("insect") || text.includes("kagat") || text.includes("lamok")) {
+      return ["Paano maiiwasan ang dengue?", "Anong anti-mosquito na effective?"];
+    }
+    return CATEGORY_SUGGESTIONS.first_aid;
+  }
+
+  // DIY: kung may specific problem, i-suggest prevention
+  if (answer.category === "diy") {
+    if (text.includes("gripo") || text.includes("tulo")) {
+      return ["Paano maiiwasan na masira ang gripo?", "Anong tools dapat meron sa bahay?"];
+    }
+    if (text.includes("ilaw") || text.includes("light")) {
+      return ["Ligtas ba ang DIY electrical?", "Kailan dapat tawagin ang electrician?"];
+    }
+    return CATEGORY_SUGGESTIONS.diy;
+  }
+
+  // Generic: kung may topic, i-suggest related paano questions
+  if (answer.category === "generic") {
+    return [
+      "Paano magluto ng mabilis na ulam?",
+      "Paano magcommute sa Metro Manila?",
+    ];
+  }
+
+  return CATEGORY_SUGGESTIONS[answer.category] ?? [];
+}
+
 export async function runAnswerPipeline(
   messages: ChatMessage[],
   opts?: { image?: string },
@@ -122,7 +227,7 @@ export async function runAnswerPipeline(
   return {
     answer,
     source: "llm",
-    suggestions: CATEGORY_SUGGESTIONS[answer.category] ?? [],
+    suggestions: contextualSuggestions(answer),
     repaired: result.repaired,
     raw: result.raw,
   };
@@ -176,7 +281,7 @@ async function handleImageQuestion(text: string, imageDataUrl: string): Promise<
     return {
       answer: result.answer,
       source: "llm",
-      suggestions: CATEGORY_SUGGESTIONS["cooking"] ?? [],
+      suggestions: contextualSuggestions(result.answer),
       repaired: result.repaired,
       raw: result.raw,
     };
