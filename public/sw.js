@@ -1,6 +1,12 @@
 /* PAANO service worker — app shell + runtime cache para sa PWA offline. */
-const CACHE = "paano-v2";
-const APP_SHELL = ["/", "/paano", "/manifest.webmanifest", "/bot-avatar.svg"];
+const CACHE = "paano-v3";
+const APP_SHELL = [
+  "/",
+  "/paano",
+  "/manifest.webmanifest",
+  "/bot-avatar.svg",
+  "/brand/paano-ai-logo.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

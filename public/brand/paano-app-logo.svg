@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="PAANO P logo">
+  <rect width="1024" height="1024" fill="#003153"/>
+  <path fill="#FBE77A" fill-rule="evenodd" d="M218 142h366c157 0 261 100 261 246 0 145-104 246-261 246H428v232H218V142Zm210 188v138h150c37 0 59-30 59-69s-22-69-59-69H428Zm116 7 31 31 44-18 18 44 48 1v48l44 18-18 44 31 31-31 31 18 44-44 18v48l-48 1-18 44-44-18-31 31-31-31-44 18-18-44-48-1v-48l-44-18 18-44-31-31 31-31-18-44 44-18v-48l48-1 18-44 44 18 31-31Z"/>
+  <path fill="none" stroke="#125070" stroke-width="12" stroke-linejoin="round" d="M246 170h338c139 0 233 86 233 218 0 131-94 218-233 218H400v232"/>
+</svg>

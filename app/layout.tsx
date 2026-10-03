@@ -1,23 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Header } from "@/components/Header";
 import { PwaRegister } from "@/components/PwaRegister";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "PAANO — Ang praktikal na 'paano' sa Pilipinas",
   description:
-    "Commute, lutong bahay, gawa-bahay, first aid, at government docs — sagot na Taglish, hyper-local, at praktikal. Parang tita o kuya na ginawa na ito.",
+    "Commute, lutong bahay, gawaing bahay, first aid, at government docs — sagot na Taglish, hyper-local, at praktikal. Parang tita o kuya na ginawa na ito.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "PAANO", statusBarStyle: "black-translucent" },
 };
@@ -30,24 +20,24 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fil"
-      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="dark h-full antialiased"
+      suppressHydrationWarning
     >
-      <head>
-        <script
+      <body className="flex min-h-full flex-col overflow-x-hidden bg-deep text-body">
+        <PwaRegister />
+        <Header />
+        {children}
+        <footer className="mt-auto border-t border-line px-4 py-5 text-center text-xs leading-relaxed text-muted backdrop-blur-sm sm:py-6 sm:text-[13px]">
+          PAANO — impormasyon lamang. Hindi ito opisyal na source ng gobyerno,
+          doktor, o abogado.
+        </footer>
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('paano:theme');if(t==='light'){document.documentElement.classList.remove('dark');}}catch(e){}`,
           }}
         />
-      </head>
-      <body className="flex min-h-full flex-col overflow-x-hidden bg-[#021B30] text-zinc-100">
-        <PwaRegister />
-        <Header />
-        {children}
-        <footer className="mt-auto border-t border-white/10 px-4 py-5 text-center text-[12px] leading-relaxed text-slate-400 sm:py-6 sm:text-[13px] backdrop-blur-sm">
-          PAANO — hindi opisyal na source ng gobyerno o medikal na payo.
-          <br />
-          I-verify sa opisyal na ahensya bago kumilos.
-        </footer>
       </body>
     </html>
   );

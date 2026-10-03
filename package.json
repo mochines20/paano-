@@ -7,12 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "gtfs:download": "node scripts/download-gtfs.mjs"
+    "test": "vitest run",
+    "gtfs:download": "node scripts/download-gtfs.mjs",
+    "knowledge:refresh": "node scripts/refresh-knowledge.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.17.0",
     "@supabase/supabase-js": "^2.112.3",
     "next": "16.3.0",
+    "pdf-parse": "^2.4.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -24,6 +27,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

@@ -4,14 +4,29 @@ import {
   findRoutesTo,
   estimateRouteKm,
 } from "@/lib/commute/gtfs";
-import { estimateFareBand, estimateFareBandForModes, FARE_SOURCE, nonFormulaModeContext } from "@/lib/commute/fares";
-import { buildTerminalContext } from "@/lib/commute/terminals";
-import type { PaanoAnswer } from "@/lib/answers";
+import {
+  estimateFareBand,
+  estimateFareBandForModes,
+  FARE_SOURCE,
+  nonFormulaModeContext,
+} from "@/lib/commute/fares";
+import {
+  buildTerminalContext,
+  findMultiLegRoutes,
+  findTerminalRoutes,
+} from "@/lib/commute/terminals";
+import type { AnswerProvenance, PaanoAnswer } from "@/lib/answers";
+import {
+  commuteProvenance,
+  orderCommuteSources,
+  sourceRef,
+  type CommuteSourceRef,
+} from "@/lib/commute/sources";
 
 /**
- * Commute grounding — dinidikit ang totoong datos (GTFS routes + LTFRB
- * fare formulas) sa tanong bago pumunta sa LLM, para hindi puro haka-haka
- * ang sagot ng modelo.
+ * Commute grounding — dinidikit ang source-prioritized datos (terminal
+ * snapshots, community GTFS, at LTFRB estimates) sa tanong bago pumunta sa
+ * LLM, para hindi puro haka-haka ang sagot ng modelo.
  *
  * Ang result ay:
  *  - context: text na ia-append sa user message (LLM grounding)
@@ -24,6 +39,9 @@ export interface CommuteGrounding {
   routes: string[];
   km: number | null;
   fareBand: { min: number; max: number } | null;
+  fareBasis: "terminal" | "ltfrb_estimate" | null;
+  sources: CommuteSourceRef[];
+  provenance: AnswerProvenance;
 }
 
 const INTENT_KEYWORDS = [
@@ -56,7 +74,8 @@ export function isCommuteQuestion(question: string): boolean {
 const SEP_RE =
   /\b(papuntang|papunta|puntang|patungo|hanggang|pa?punta|to)\b/i;
 
-function extractPlaces(question: string): { origin?: string; dest?: string } {
+/** Exported para sa unit tests — place extraction mula sa tanong. */
+export function extractPlaces(question: string): { origin?: string; dest?: string } {
   let origin: string | undefined;
   let dest: string | undefined;
 
@@ -115,16 +134,39 @@ export async function groundCommuteQuestion(
     let routeNames: string[] = [];
     let km: number | null = null;
     let fareBand: { min: number; max: number } | null = null;
+    let fareBasis: CommuteGrounding["fareBasis"] = null;
+    const sources: CommuteSourceRef[] = [];
+    let terminalMatched = false;
 
-    // ── 1. Terminal route data (PRIORITY — real routes, real fares) ──
+    // ── 1. Terminal/operator snapshot (priority over community GTFS) ──
     if (origin && dest) {
       const terminalContext = buildTerminalContext(origin, dest);
       if (terminalContext) {
         parts.push(terminalContext);
+        terminalMatched = true;
+        const terminalSource = sourceRef("curated-terminal-snapshot");
+        if (terminalSource) sources.push(terminalSource);
+
+        const direct = findTerminalRoutes(origin, dest);
+        const multiLeg = direct.length > 0 ? [] : findMultiLegRoutes(origin, dest);
+        const directFares = direct.slice(0, 3).map((route) => route.fare);
+        const multiLegFares = multiLeg
+          .slice(0, 3)
+          .map((legs) => legs.reduce((sum, leg) => sum + leg.fare, 0));
+        const fixedFares = [...directFares, ...multiLegFares];
+        if (fixedFares.length > 0) {
+          fareBand = { min: Math.min(...fixedFares), max: Math.max(...fixedFares) };
+          fareBasis = "terminal";
+        }
+
+        const terminalNames = direct.length > 0
+          ? direct.slice(0, 3).map((route) => `${route.operator} → ${route.destination}`)
+          : multiLeg.slice(0, 2).map((legs) => legs.map((leg) => leg.operator).join(" + "));
+        routeNames = [...new Set(terminalNames)].slice(0, 3);
       }
     }
 
-    // ── 2. GTFS data (supplement — route names, distance) ──
+    // ── 2. Community GTFS (route discovery/geometry fallback) ──
     const index = await loadGtfs();
     if (index) {
       const routes =
@@ -134,32 +176,55 @@ export async function groundCommuteQuestion(
             ? findRoutesTo(index, dest)
             : [];
       km = origin && dest ? estimateRouteKm(index, origin, dest) : null;
-      fareBand = km !== null ? estimateFareBand(km) : null;
+      const gtfsRouteNames = [...new Set(routes.slice(0, 5).map((r) => r.displayName))].slice(0, 3);
+      routeNames = [...new Set([...routeNames, ...gtfsRouteNames])].slice(0, 5);
 
-      routeNames = [...new Set(routes.slice(0, 5).map((r) => r.displayName))].slice(0, 3);
+      if (!terminalMatched && km !== null) {
+        fareBand = estimateFareBand(km);
+        fareBasis = "ltfrb_estimate";
+      }
 
-      if (routeNames.length > 0 || km) {
+      if (gtfsRouteNames.length > 0 || km) {
+        const gtfsSource = sourceRef("sakayph-gtfs");
+        if (gtfsSource) sources.push(gtfsSource);
         parts.push("[Commute data reference — gamitin ito kung tugma sa tanong:");
-        if (routeNames.length > 0) {
-          parts.push(`candidate routes: ${routeNames.join("; ")}`);
+        if (gtfsRouteNames.length > 0) {
+          parts.push(`candidate routes: ${gtfsRouteNames.join("; ")}`);
         }
         if (km !== null) {
           parts.push(`estimated distance: ~${km} km`);
-          if (fareBand) {
+          if (fareBand && !terminalMatched) {
             parts.push(
-              `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max} (trad jeepney ₱13 + ₱1.80/km, modern jeepney ₱15 + ₱2.20/km, ordinary bus ₱13 + ₱2.25/km, aircon bus ₱15 + ₱2.65/km)`,
+              `LTFRB fare estimate: ₱${fareBand.min}–₱${fareBand.max}. Ito ay formula-based estimate, hindi fixed fare ng operator.`,
             );
           }
         }
         parts.push(
-          `Source: ${FARE_SOURCE} Huwag mag-imbento ng ibang ruta o presyo; kung hindi tugma ang data, sabihin na tantiya lang ang sagot.]`,
+          `Source: SakayPH community GTFS (${gtfsSource?.url ?? "source registry"}). Huwag tawaging official o live ang data; kung hindi tugma, sabihin na fallback/tantiya lang.]`,
         );
       }
     }
 
     if (parts.length === 0) return null;
 
-    return { context: parts.join(" "), routes: routeNames, km, fareBand };
+    const orderedSources = orderCommuteSources(sources);
+    return {
+      context: [
+        `[Commute source priority: official government > official terminal/operator > LGU > community GTFS > aggregator. Primary source: ${orderedSources[0]?.name ?? "none"}. Fallback data must never be presented as official.]`,
+        ...parts,
+      ].join(" "),
+      routes: routeNames,
+      km,
+      fareBand,
+      fareBasis,
+      sources: orderedSources,
+      provenance: commuteProvenance(
+        orderedSources,
+        terminalMatched
+          ? "Static terminal/operator snapshot used for route and fixed-fare guidance. Confirm fare, schedule, and availability before departure."
+          : "Community GTFS used for route discovery and distance only. Fare is a formula-based estimate; verify with LTFRB/operator before departure.",
+      ),
+    };
   } catch {
     return null;
   }
@@ -180,21 +245,25 @@ export function applyCommuteGrounding(
   if (!spec || spec.category !== "commute") return answer;
 
   let next = { ...spec };
-  if (g.routes.length > 0 && next.route_names.length === 0) {
+  if (g.routes.length > 0) {
     next = { ...next, route_names: g.routes };
   }
   // Fare band batay sa MGA MODE na sinabi ng modelo (hal. jeepney lang →
   // ₱13–₱15 base; bus lang → ₱13–₱15 base) — mas precise kaysa lahat-ng-mode.
   // P2P, UV Express, at tricycle ay HINDI kasama dahil walang per-km formula.
   const fareBand =
-    g.km !== null
+    g.fareBasis === "terminal"
+      ? g.fareBand
+      : g.km !== null
       ? estimateFareBandForModes(g.km, next.modes) ?? g.fareBand
       : g.fareBand;
   if (fareBand) {
     const nonFormula = nonFormulaModeContext(next.modes);
-    const fareNote = nonFormula
-      ? `Tinantiya mula sa ${FARE_SOURCE}. ${nonFormula}`
-      : `Tinantiya mula sa ${FARE_SOURCE}`;
+    const fareNote = g.fareBasis === "terminal"
+      ? `Fixed fare mula sa curated terminal snapshot; i-verify sa operator bago bumiyahe.${nonFormula ? ` ${nonFormula}` : ""}`
+      : nonFormula
+        ? `Tinantiya mula sa ${FARE_SOURCE}. ${nonFormula}`
+        : `Tinantiya mula sa ${FARE_SOURCE}`;
     next = {
       ...next,
       fare_range: { min: fareBand.min, max: fareBand.max, currency: "PHP" },
@@ -203,5 +272,45 @@ export function applyCommuteGrounding(
         : fareNote,
     };
   }
-  return { ...answer, category_specific: next };
+  const groundedAnswer: PaanoAnswer = {
+    ...answer,
+    category_specific: next,
+    provenance: g.provenance,
+    official_link:
+      answer.official_link ??
+      (g.provenance.url
+        ? { label: g.provenance.label, url: g.provenance.url }
+        : null),
+  };
+
+  // A distance hit without a candidate route is not enough evidence for a
+  // safe step-by-step commute answer. Keep the model from turning an
+  // unverified guess into a precise-sounding MRT/jeep transfer.
+  const onlyDistanceFallback =
+    g.fareBasis !== "terminal" &&
+    g.routes.length === 0 &&
+    g.sources.some((source) => source.id === "sakayph-gtfs");
+  if (onlyDistanceFallback) {
+    return {
+      ...groundedAnswer,
+      confidence: "low",
+      title: groundedAnswer.title || "Kailangan ng mas eksaktong ruta",
+      summary:
+        "Wala akong nahanap na matching route sa grounded commute data para sa origin at destination na ito. Ayokong manghula ng station o transfer.",
+      steps: [
+        "Ibigay ang mas eksaktong origin at destination, kasama ang barangay o pinakamalapit na landmark.",
+        "I-verify ang aktuwal na ruta, fare, at service status sa operator o official transport source bago bumiyahe.",
+      ],
+      disclaimer:
+        "Walang candidate route na na-verify sa source data; ang sagot na ito ay hindi dapat gamiting exact navigation instruction.",
+      category_specific: {
+        ...next,
+        route_names: [],
+        fare_notes:
+          "Walang matching route na na-verify. Huwag gamitin ang fare estimate bilang exact fare; i-check sa LTFRB/operator.",
+      },
+    };
+  }
+
+  return groundedAnswer;
 }

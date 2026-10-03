@@ -19,6 +19,7 @@ export interface PalengkePrice {
 }
 
 /** Karaniwang presyo sa NCR palengke (tantiya, Aug 2026). */
+const FALLBACK_PRICE_AS_OF = "2026-08-30";
 const FALLBACK_PRICES: PalengkePrice[] = [
   { item: "manok (buo)", pricePerKg: 180 },
   { item: "baboy (liempo)", pricePerKg: 350 },
@@ -40,10 +41,36 @@ const FALLBACK_PRICES: PalengkePrice[] = [
 ];
 
 export const PRICE_SOURCE_NOTE =
-  "Palengke prices (NCR, tantiya batay sa DA Bantay Presyo) — maaaring magbago; i-verify sa inyong palengke.";
+  `Palengke prices (NCR fallback estimate; hindi live DA data; reference date ${FALLBACK_PRICE_AS_OF}) — maaaring magbago; i-verify sa inyong palengke.`;
 
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 let cache: { at: number; prices: PalengkePrice[] } | null = null;
+let lastSource: "DA_PRICE_URL" | "fallback estimate" = "fallback estimate";
+let lastFetchedAt: string | null = null;
+
+export function getPriceSourceNote(): string {
+  return lastSource === "DA_PRICE_URL"
+    ? `Price source: configured DA_PRICE_URL feed (fetched ${lastFetchedAt ?? "unknown date"}); maaaring magbago, i-verify sa inyong palengke.`
+    : PRICE_SOURCE_NOTE;
+}
+
+export function getPriceProvenance() {
+  return lastSource === "DA_PRICE_URL"
+    ? {
+        label: "Configured price feed",
+        asOf: lastFetchedAt,
+        status: "needs_review" as const,
+        note: "Machine-fetched price feed; hindi pa human-approved bilang official live data.",
+        url: process.env.DA_PRICE_URL ?? null,
+      }
+    : {
+        label: "NCR fallback estimate",
+        asOf: FALLBACK_PRICE_AS_OF,
+        status: "estimate" as const,
+        note: "Tantya lamang, hindi live DA data. I-verify sa inyong palengke.",
+        url: "https://www.da.gov.ph/category/bantay-presyo/",
+      };
+}
 
 /** Kunin ang presyo — DA fetch (kung naka-configure) o fallback table. */
 export async function getPalengkePrices(): Promise<PalengkePrice[]> {
@@ -60,6 +87,8 @@ export async function getPalengkePrices(): Promise<PalengkePrice[]> {
           .map((d) => ({ item: d.item!, pricePerKg: d.pricePerKg! }))
           .slice(0, 60);
         if (prices.length > 0) {
+          lastSource = "DA_PRICE_URL";
+          lastFetchedAt = new Date().toISOString().slice(0, 10);
           cache = { at: Date.now(), prices };
           return prices;
         }
@@ -70,6 +99,7 @@ export async function getPalengkePrices(): Promise<PalengkePrice[]> {
   }
 
   cache = { at: Date.now(), prices: FALLBACK_PRICES };
+  lastSource = "fallback estimate";
   return FALLBACK_PRICES;
 }
 

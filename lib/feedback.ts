@@ -20,6 +20,9 @@ export function answerHash(answer: PaanoAnswer): string {
     answer.steps.join("|"),
     answer.disclaimer ?? "",
     answer.official_link?.url ?? "",
+    answer.provenance?.label ?? "",
+    answer.provenance?.asOf ?? "",
+    answer.provenance?.status ?? "",
   ].join("\n");
   let h = 5381;
   for (let i = 0; i < text.length; i++) {

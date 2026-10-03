@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
-import { PipelineError, runAnswerPipeline } from "@/lib/pipeline";
+import { isGreetingQuestion, PipelineError, runAnswerPipeline } from "@/lib/pipeline";
 import { fallbackAnswer } from "@/lib/answers";
-import type { ChatMessage } from "@/lib/answers";
 import { logQuestion } from "@/lib/logging";
 import { checkRateLimit, peekRemaining } from "@/lib/rate-limit";
 import { getCachedAnswer, setCachedAnswer } from "@/lib/cache";
+import {
+  parseMessages,
+  validImage,
+  type AskBody,
+} from "@/lib/ask-body";
 
 /**
  * POST /api/ask — thin HTTP layer; ang business logic ay nasa
@@ -13,24 +17,8 @@ import { getCachedAnswer, setCachedAnswer } from "@/lib/cache";
  */
 
 export const runtime = "nodejs";
+// Keep the HTTP contract aligned with the Ollama provider's bounded timeout.
 export const maxDuration = 60;
-
-const MAX_MESSAGES = 12;
-const MAX_QUESTION_LENGTH = 1000;
-
-interface AskBody {
-  messages: { role: string; content: string }[];
-  image?: string;
-}
-
-/** Validate ang image data URL (image→recipe). Max ~5MB base64. */
-function validImage(image: unknown): image is string {
-  return (
-    typeof image === "string" &&
-    /^data:image\/(png|jpe?g|webp|heic);base64,[A-Za-z0-9+/=]+$/.test(image) &&
-    image.length <= 5_000_000
-  );
-}
 
 export async function POST(req: Request) {
   const clientIp =
@@ -46,24 +34,8 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!Array.isArray(body.messages) || body.messages.length === 0) {
-    return NextResponse.json(
-      { error: "Walang laman ang tanong. Subukan muli." },
-      { status: 400 },
-    );
-  }
-
-  const messages: ChatMessage[] = body.messages
-    .slice(-MAX_MESSAGES)
-    .map(
-      (m): ChatMessage => ({
-        role: m.role === "model" ? "model" : "user",
-        content: String(m.content).slice(0, MAX_QUESTION_LENGTH),
-      }),
-    )
-    .filter((m) => m.content.trim().length > 0);
-
-  if (messages.length === 0) {
+  const messages = parseMessages(body);
+  if (!messages) {
     return NextResponse.json(
       { error: "Walang laman ang tanong. Subukan muli." },
       { status: 400 },
@@ -74,7 +46,7 @@ export async function POST(req: Request) {
   const queryText = lastUserMsg?.content;
 
   // 1. Fast Cache Hit check (kung walang image attachment)
-  if (!body.image && queryText && messages.length <= 2) {
+  if (!body.image && queryText && messages.length <= 2 && !isGreetingQuestion(queryText)) {
     const cached = getCachedAnswer(queryText);
     if (cached) {
       // Cache hits don't consume rate limit — peek lang ng remaining para sa UI
@@ -118,7 +90,7 @@ export async function POST(req: Request) {
     const result = await runAnswerPipeline(messages, { image });
     const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
 
-    if (!body.image && queryText) {
+    if (!body.image && queryText && !isGreetingQuestion(queryText)) {
       setCachedAnswer(queryText, result.answer, result.suggestions);
     }
 

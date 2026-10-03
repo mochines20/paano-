@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // One-off research/scratch scripts sa repo root (hindi part ng app):
+    "*.js",
   ]),
 ]);
 

@@ -1,16 +1,16 @@
 /**
  * LTFRB fare formulas — configurable constants, HINDI hardcoded na sagot.
  *
- * IMPORTANT: Ang fare hike na na-approve noong March 19, 2026 ay SUSPENDED
- * ni President Marcos dahil sa oil price crisis. Ang current na fares ay
- * ang PRE-HIKE rates. Verified August 2026 laban sa GMA News, Rappler,
- * Philstar, Inquirer, at BusinessWorld:
+ * IMPORTANT: May bagong PUV fare adjustment na iniulat na effective
+ * 2026-09-28. Ang official LTFRB matrix ang final authority, pero wala pang
+ * live machine-readable LTFRB feed na konektado sa app. Kaya ang rules sa
+ * file na ito ay structured estimate lamang at laging may needs_review label.
  *
- * Current effective fares (pre-hike, suspended ang March 2026 increase):
- *   - Traditional jeepney: ₱13 minimum (unang 4km) + ₱1.80/km
- *   - Modern jeepney:      ₱15 minimum (unang 4km) + ₱2.20/km
- *   - City bus (ordinary): ₱13 minimum (unang 5km) + ₱2.25/km
- *   - City bus (aircon):   ₱15 minimum (unang 5km) + ₱2.65/km
+ * Reported 2026-09-28 Metro Manila rates used for estimation:
+ *   - Traditional jeepney: ₱14 minimum (unang 4km) + ₱2.00/km
+ *   - Modern jeepney:      ₱17 minimum (unang 4km) + ₱2.40/km
+ *   - City bus (ordinary): ₱15 minimum (unang 5km) + ₱2.49/km
+ *   - City bus (aircon):   ₱18 minimum (unang 5km) + ₱2.98/km
  *   - Provincial bus (ordinary): ₱11 minimum (unang 5km) + ₱1.90/km
  *   - Provincial bus (aircon):   ₱11 minimum (unang 5km) + ₱2.10/km
  *   - Provincial bus (deluxe):   ₱11 minimum (unang 5km) + ₱2.25/km
@@ -24,13 +24,16 @@
  *   - UV Express:    Fixed per route, set ng operator na may LTFRB approval
  *   - Tricycle:      Set ng LGU/barangay ordinance (₱20–₱50 per ride, varies)
  *
- * Source: ltfrb.gov.ph, doTr announcements (August 2026) — maaaring magbago.
+ * Source: LTFRB official site + 2026-09-28 public fare-adjustment reports.
+ * I-verify ang exact matrix sa https://ltfrb.gov.ph/ bago bumiyahe.
  */
 
 export const FARE_SOURCE =
-  "LTFRB fare matrix (pre-hike rates — SUSPENDED ang March 2026 increase ni President Marcos dahil sa oil price crisis). Source: ltfrb.gov.ph, GMA News, Rappler, Philstar (verified August 2026). Maaaring magbago.";
+  "LTFRB fare estimate based on the reported 2026-09-28 adjustment; needs review against the latest official fare matrix. Verify at ltfrb.gov.ph before travel.";
 
-export const FARE_EFFECTIVE_DATE = "pre-2026-03-19";
+export const FARE_EFFECTIVE_DATE = "2026-09-28";
+export const FARE_STATUS = "needs_review" as const;
+export const FARE_SOURCE_URL = "https://ltfrb.gov.ph/";
 
 export interface FareRule {
   mode: string;
@@ -38,6 +41,7 @@ export interface FareRule {
   base: number;
   baseKm: number;
   perKm: number;
+  scope?: "metro" | "provincial";
   note?: string;
 }
 
@@ -50,31 +54,35 @@ export const FARE_RULES: FareRule[] = [
   {
     mode: "jeepney",
     label: "Traditional jeepney",
-    base: 13,
+    base: 14,
     baseKm: 4,
-    perKm: 1.8,
+    perKm: 2,
+    scope: "metro",
   },
   {
     mode: "jeepney",
     label: "Modern jeepney",
-    base: 15,
+    base: 17,
     baseKm: 4,
-    perKm: 2.2,
+    perKm: 2.4,
+    scope: "metro",
     note: "Modern PUJ — air-conditioned",
   },
   {
     mode: "bus",
     label: "City bus (ordinary)",
-    base: 13,
+    base: 15,
     baseKm: 5,
-    perKm: 2.25,
+    perKm: 2.49,
+    scope: "metro",
   },
   {
     mode: "bus",
     label: "City bus (aircon)",
-    base: 15,
+    base: 18,
     baseKm: 5,
-    perKm: 2.65,
+    perKm: 2.98,
+    scope: "metro",
   },
   {
     mode: "bus",
@@ -82,6 +90,7 @@ export const FARE_RULES: FareRule[] = [
     base: 11,
     baseKm: 5,
     perKm: 1.9,
+    scope: "provincial",
     note: "Provincial matrix — i-verify sa operator",
   },
   {
@@ -90,6 +99,7 @@ export const FARE_RULES: FareRule[] = [
     base: 11,
     baseKm: 5,
     perKm: 2.1,
+    scope: "provincial",
     note: "Provincial aircon — i-verify sa operator",
   },
   {
@@ -98,6 +108,7 @@ export const FARE_RULES: FareRule[] = [
     base: 11,
     baseKm: 5,
     perKm: 2.25,
+    scope: "provincial",
     note: "Deluxe — i-verify sa operator",
   },
   {
@@ -106,6 +117,7 @@ export const FARE_RULES: FareRule[] = [
     base: 11,
     baseKm: 5,
     perKm: 2.35,
+    scope: "provincial",
     note: "Super deluxe — i-verify sa operator",
   },
   {
@@ -114,6 +126,7 @@ export const FARE_RULES: FareRule[] = [
     base: 11,
     baseKm: 5,
     perKm: 2.9,
+    scope: "provincial",
     note: "Luxury class — i-verify sa operator",
   },
 ];
@@ -176,8 +189,14 @@ export function estimateFareBandForModes(
   const relevantModeSet = new Set([...known].filter((m) => formulaModes.has(m)));
   const rules =
     relevantModeSet.size > 0
-      ? FARE_RULES.filter((r) => relevantModeSet.has(r.mode))
-      : FARE_RULES;
+      ? FARE_RULES.filter(
+          (r) =>
+            relevantModeSet.has(r.mode) &&
+            // A generic "bus"/"jeepney" answer in Metro Manila must not
+            // accidentally widen its fare with provincial rules.
+            (r.scope ?? "metro") === "metro",
+        )
+      : FARE_RULES.filter((r) => (r.scope ?? "metro") === "metro");
 
   const values = rules.map((r) => estimateFare(r, km));
   if (values.length === 0) return null;

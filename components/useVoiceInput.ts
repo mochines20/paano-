@@ -9,14 +9,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function useVoiceInput() {
   const [listening, setListening] = useState(false);
-  const [supported] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  });
+  const [supported, setSupported] = useState(false);
   const recognitionRef = useRef<unknown>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSupported(!!(window.SpeechRecognition || window.webkitSpeechRecognition));
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {

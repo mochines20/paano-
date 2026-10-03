@@ -8,15 +8,19 @@ interface CacheEntry {
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_CACHE_SIZE = 500;
+// Bump when answer rules/grounding change so an older unsafe answer cannot
+// survive a long-lived process or deployment that reuses the module cache.
+const CACHE_VERSION = "v4";
 
 const responseCache = new Map<string, CacheEntry>();
 
 export function normalizeQueryKey(query: string): string {
-  return query
+  const normalized = query
     .toLowerCase()
     .trim()
     .replace(/[?.,!/\\;:'"()[\]{}]/g, "")
     .replace(/\s+/g, " ");
+  return normalized ? `${CACHE_VERSION}:${normalized}` : "";
 }
 
 export function getCachedAnswer(

@@ -43,7 +43,7 @@ export const DOC_GUIDES: DocGuide[] = [
     title: "PSA Certificate (Birth / Marriage / Death / CENOMAR)",
     agency: "PSA",
     summary:
-      "Humingi ng opisyal na kopya ng birth, marriage, o death certificate online sa psahelpline.ph — ₱365 per copy na kasama na ang processing at door-to-door delivery.",
+      "Humingi ng opisyal na kopya ng birth, marriage, o death certificate online sa PSA-authorized channels. Ayon sa PSA Public Advisory No. 101 (2026-02-20), ₱330 per copy ang birth/marriage/death certificate at ₱430 ang CENOMAR/CENODEATH sa PSA Serbilis; i-verify bago magbayad.",
     keywords: [
       "birth certificate",
       "birth cert",
@@ -68,28 +68,28 @@ export const DOC_GUIDES: DocGuide[] = [
     ],
     requirements: [
       "Details ng registrant: buong pangalan, petsa ng kapanganakan, lugar ng kapanganakan/kasal",
-      "Bayad: ₱365 per copy (kasama na ang processing at delivery)",
+      "Bayad sa PSA Serbilis: ₱330 per copy para sa birth/marriage/death certificate; ₱430 para sa CENOMAR/CENODEATH. Maaaring may tiered pricing kung higit sa isang kopya.",
     ],
     fees: [
       {
         item: "PSA Certificate (birth/marriage/death) — SECPA delivery",
-        amount: "₱365 per copy (kasama na ang processing + delivery)",
-        updated: "2026-08",
+        amount: "₱330 per copy ayon sa PSA Public Advisory No. 101; i-verify ang total sa checkout",
+        updated: "2026-02",
       },
       {
         item: "PSA E-Certificate (digital copy)",
-        amount: "₱290 — pinakamabilis; nangangailangan ng identity verification",
-        updated: "2026-08",
+        amount: "Ayon sa official PSA channel at checkout; huwag gumamit ng lumang fixed amount",
+        updated: "2026-02",
       },
       {
         item: "PSA SECPA pickup",
-        amount: "₱335 (pickup sa National Book Store / Robinsons branches)",
-        updated: "2026-08",
+        amount: "Ayon sa official PSA channel at checkout; huwag gumamit ng lumang fixed amount",
+        updated: "2026-02",
       },
       {
         item: "CENOMAR / CENODEATH",
-        amount: "₱420 per copy",
-        updated: "2026-08",
+        amount: "₱430 per copy ayon sa PSA Public Advisory No. 101; i-verify ang total sa checkout",
+        updated: "2026-02",
       },
     ],
     processing_time:
@@ -105,7 +105,7 @@ export const DOC_GUIDES: DocGuide[] = [
       "May mga pekeng/klon na PSA site — pumunta lang sa psahelpline.ph at hanapin ang 'official PSA authorized' na wording.",
       "Pwedeng magtalaga ng ibang tao para tumanggap ng delivery sa pamamagitan ng online Letter of Authorization (LOA).",
     ],
-    lastVerified: "2026-08-13",
+    lastVerified: "2026-09-30",
   },
   {
     id: "lto-student-permit",
@@ -219,13 +219,13 @@ export const DOC_GUIDES: DocGuide[] = [
       { item: "Passport fee", amount: "As of booking sa DFA portal (regular vs expedite)", updated: "2026-08" },
     ],
     processing_time: "Regular vs expedite — itinakda sa claim stub",
-    official_link: { label: "DFA Passport Portal", url: "https://www.dfa.gov.ph" },
+    official_link: { label: "DFA Passport Appointment Portal", url: "https://passport.gov.ph/appointment/individual/site" },
     prerequisites: ["psa-certificate"],
     usedAsIdFor: [],
     alerts: [
       "Huwag dumiretso nang walang appointment — walk-in ay hindi na tinatanggap (except Courtesy Lane).",
     ],
-    lastVerified: "2026-08-13",
+    lastVerified: "2026-09-30",
   },
   {
     id: "nbi-clearance",
@@ -251,13 +251,13 @@ export const DOC_GUIDES: DocGuide[] = [
       { item: "First-time job seeker (RA 11261)", amount: "Libre — sa pamamagitan ng hiwalay na portal, hindi sa regular", updated: "2026-08" },
     ],
     processing_time: "Same-day release kung walang 'hit'; kung may hit, may verification",
-    official_link: { label: "NBI Clearance Portal", url: "https://nbi.gov.ph" },
+    official_link: { label: "Official NBI Clearance Portal", url: "https://clearance.nbi.gov.ph/" },
     prerequisites: ["psa-certificate"],
     usedAsIdFor: [],
     alerts: [
       "First-time job seekers: libre ang isang clearance sa ilalim ng RA 11261, PERO dapat mag-register sa hiwalay na portal ng programa, hindi sa regular.",
     ],
-    lastVerified: "2026-08-13",
+    lastVerified: "2026-09-30",
   },
   {
     id: "philsys-national-id",

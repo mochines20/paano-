@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconPhone, IconSiren } from "@/components/icons";
 
 export interface Hotline {
   id: string;
@@ -127,28 +128,25 @@ export function EmergencyModal({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#021B30]/70 p-3 backdrop-blur-md sm:p-4 animate-fade-up">
-      <div className="glass-strong relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border-rose-400/30 shadow-2xl shadow-rose-950/40">
+    <div className="animate-fade-up fixed inset-0 z-50 flex items-center justify-center bg-deep/70 p-3 backdrop-blur-md sm:p-4">
+      <div
+        className="glass-strong relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border-rose-400/30 shadow-2xl shadow-rose-950/40"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Saklolo — emergency hotlines"
+      >
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-rose-900/40 via-rose-800/30 to-transparent p-4 border-b border-rose-400/20">
+        <div className="border-b border-rose-400/20 bg-surface p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/40">
-                <svg
-                  className="h-5 w-5 animate-pulse-dot"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-600 ring-1 ring-rose-500/40 dark:text-rose-400">
+                <IconSiren className="h-5 w-5" />
               </span>
               <div>
-                <h2 className="text-base font-black text-white sm:text-lg">
-                  🚨 Saklolo — Emergency Hotlines
+                <h2 className="break-words text-base font-black text-foreground sm:text-lg">
+                  Saklolo — Emergency Hotlines
                 </h2>
-                <p className="text-[11px] font-medium text-rose-300">
+                <p className="text-[11px] font-medium text-rose-700 dark:text-rose-300">
                   One-tap dial sa mga opisyal na ahensya sa Pilipinas
                 </p>
               </div>
@@ -156,7 +154,7 @@ export function EmergencyModal({
             <button
               onClick={onClose}
               aria-label="Isara ang emergency hotlines"
-              className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-300 backdrop-blur hover:bg-white/10 hover:text-white active:scale-95 transition-colors focus-ring"
+              className="rounded-full border border-line bg-panel p-2 text-body backdrop-blur transition-colors hover:bg-panel-strong hover:text-foreground active:scale-95 focus-ring"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -168,19 +166,20 @@ export function EmergencyModal({
           <div className="mt-3 flex flex-wrap gap-1.5">
             {[
               { id: "all", label: "Lahat" },
-              { id: "medical", label: "🚑 Medikal" },
-              { id: "police", label: "👮 Pulis" },
-              { id: "traffic", label: "🚗 Trapiko (MMDA)" },
-              { id: "mental", label: "🧠 Mental Health" },
-              { id: "poison", label: "🧪 Lason (PGH)" },
+              { id: "medical", label: "Medikal" },
+              { id: "police", label: "Pulis" },
+              { id: "traffic", label: "Trapiko (MMDA)" },
+              { id: "mental", label: "Mental Health" },
+              { id: "poison", label: "Lason (PGH)" },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id as Hotline["category"])}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all ${
+                aria-pressed={filter === tab.id}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition-all focus-ring ${
                   filter === tab.id
-                    ? "bg-rose-500 text-zinc-950 shadow-md shadow-rose-500/20"
-                    : "bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10 backdrop-blur"
+                    ? "bg-rose-500 text-white shadow-md shadow-rose-500/20"
+                    : "border border-line bg-panel text-body backdrop-blur hover:bg-panel-strong"
                 }`}
               >
                 {tab.label}
@@ -190,19 +189,20 @@ export function EmergencyModal({
         </div>
 
         {/* Search input */}
-        <div className="p-3 border-b border-white/10 bg-white/5 backdrop-blur">
+        <div className="border-b border-line bg-panel p-3 backdrop-blur">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Maghanap ng ahensya o emergency (hal. 'sunog', 'ambulansya', 'lason')..."
-            className="w-full rounded-xl border border-white/10 bg-[#021B30]/40 px-3.5 py-2 text-xs text-white placeholder:text-slate-400 outline-none backdrop-blur focus:border-rose-400"
+            aria-label="Maghanap ng hotline"
+            className="w-full rounded-xl border border-line bg-deep/40 px-3.5 py-2 text-xs text-foreground placeholder:text-muted outline-none backdrop-blur focus:border-rose-400"
           />
         </div>
 
         {/* Hotlines List */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5">
+        <div className="flex-1 space-y-2.5 overflow-y-auto p-3 sm:p-4">
           {filtered.length === 0 ? (
-            <div className="p-6 text-center text-xs text-zinc-500">
+            <div className="p-6 text-center text-xs text-muted">
               Walang nahanap na hotline para sa iyong search.
             </div>
           ) : (
@@ -211,24 +211,22 @@ export function EmergencyModal({
               {filtered.some((h) => h.id === "911") && (
                 <a
                   href="tel:911"
-                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-rose-500 bg-gradient-to-r from-rose-600/30 to-red-700/20 p-4 shadow-lg shadow-rose-900/30 transition-all hover:from-rose-600/40 active:scale-[0.99] focus-ring"
+                  className="focus-ring flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-rose-500 bg-rose-500/15 p-3 shadow-lg shadow-rose-900/30 transition-all hover:bg-rose-500/25 active:scale-[0.99] sm:flex-nowrap sm:p-4"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">🚨</span>
-                      <h3 className="text-base font-black text-white">911 — National Emergency</h3>
-                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.2 text-[9px] font-extrabold text-emerald-300">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <IconSiren className="h-6 w-6 shrink-0 text-rose-600 dark:text-rose-300" />
+                      <h3 className="min-w-0 break-words text-base font-black text-foreground">911 — National Emergency</h3>
+                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300">
                         TOLL-FREE
                       </span>
                     </div>
-                    <p className="mt-0.5 text-[11px] text-rose-100 leading-relaxed">
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-rose-800 dark:text-rose-100">
                       Sunog, krimen, rescue, o medical emergency? I-tap para tumawag agad sa 911.
                     </p>
                   </div>
                   <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-rose-600/30">
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
+                    <IconPhone className="h-3.5 w-3.5" />
                     Tawag 911
                   </span>
                 </a>
@@ -239,30 +237,28 @@ export function EmergencyModal({
                 .map((hotline) => (
                   <div
                     key={hotline.id}
-                    className="glass-card flex items-center justify-between gap-3 rounded-2xl p-3.5 transition-all hover:border-rose-400/40"
+                    className="glass-card flex flex-col items-stretch justify-between gap-3 rounded-2xl p-3.5 transition-all hover:border-rose-400/40 sm:flex-row sm:items-center"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-white">{hotline.name}</h3>
+                        <h3 className="text-sm font-bold text-foreground">{hotline.name}</h3>
                         {hotline.tollFree && (
-                          <span className="rounded-full bg-emerald-500/20 px-2 py-0.2 text-[9px] font-extrabold text-emerald-300">
+                          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300">
                             TOLL-FREE
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-rose-300 font-medium">{hotline.agency}</p>
-                      <p className="mt-0.5 text-[11px] text-zinc-400 leading-relaxed">
+                      <p className="text-xs font-medium text-rose-700 dark:text-rose-300">{hotline.agency}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
                         {hotline.description}
                       </p>
                     </div>
 
                     <a
                       href={`tel:${hotline.number}`}
-                      className="flex shrink-0 items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-rose-600/30 transition-all hover:bg-rose-500 active:scale-95 focus-ring"
+                      className="focus-ring flex w-full shrink-0 items-center justify-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-xs font-black text-white shadow-lg shadow-rose-600/30 transition-all hover:bg-rose-500 active:scale-95 sm:w-auto"
                     >
-                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                      </svg>
+                      <IconPhone className="h-3.5 w-3.5" />
                       Tawagan ({formatHotlineNumber(hotline.number)})
                     </a>
                   </div>
@@ -272,11 +268,11 @@ export function EmergencyModal({
         </div>
 
         {/* Footer tips + disclaimers */}
-        <div className="space-y-2 bg-[#021B30]/40 p-3 border-t border-white/10 backdrop-blur">
-          <p className="text-center text-[10px] text-zinc-400">
-            Tip sa pagtawag: Sabihin agad ang iyong <span className="text-zinc-200 font-bold">lokasyon</span> at <span className="text-zinc-200 font-bold">kung may nasugatan</span> bago magpaliwanag.
+        <div className="space-y-2 border-t border-line bg-deep/40 p-3 backdrop-blur">
+          <p className="text-center text-[11px] text-muted">
+            Tip sa pagtawag: Sabihin agad ang iyong <span className="font-bold text-body">lokasyon</span> at <span className="font-bold text-body">kung may nasugatan</span> bago magpaliwanag.
           </p>
-          <ul className="space-y-1 text-[9px] leading-relaxed text-zinc-500">
+          <ul className="space-y-1 text-[11px] leading-relaxed text-muted">
             <li>• Gumamit lamang ng emergency services para sa tunay na emergency.</li>
             <li>• Maaaring mag-iba ang routing at availability ng numero depende sa lokasyon; i-verify sa inyong LGU.</li>
             <li>• Para sa medical emergency, tumawag sa 911 o magtungo sa pinakamalapit na emergency room.</li>

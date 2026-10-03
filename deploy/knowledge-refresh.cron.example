@@ -1,0 +1,3 @@
+# Install on the VPS with: crontab -e
+# Keep the environment file root-readable only (chmod 600).
+15 2 * * * cd /opt/paano && set -a && . /opt/paano/.env.refresh && set +a && /usr/bin/npm run knowledge:refresh >> /var/log/paano-knowledge-refresh.log 2>&1

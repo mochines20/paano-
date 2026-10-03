@@ -15,11 +15,22 @@
   --border-strong: rgba(255, 255, 255, 0.18);
   --muted: #a9c2d6;
 
+  /* Text hierarchy — body/soft para sa paragraphs at secondary labels */
+  --fg-body: #dbe7f2;
+
+  /* Panels — translucent surface sa ibabaw ng background/cards */
+  --panel: rgba(255, 255, 255, 0.06);
+  --panel-strong: rgba(255, 255, 255, 0.11);
+
+  /* Deep navy — chat shell at inset cards */
+  --deep: #021b30;
+
   /* Brand — Butter Yellow */
   --accent: #fbe77a;
   --accent-bright: #ffe98a;
   --accent-dim: #e8c95c;
-  --accent-ink: #1a2b40; /* text on butter yellow */
+  --accent-strong: #e8c547; /* primary filled-button yellow */
+  --accent-ink: #0a2540; /* text on butter yellow */
   --accent-glow: rgba(251, 231, 122, 0.22);
 
   /* Easing — natural na galaw */
@@ -48,97 +59,82 @@
   --shadow-lg: 0 8px 32px rgba(0, 10, 25, 0.40), 0 2px 4px rgba(0, 0, 0, 0.20);
   --shadow-glow: 0 0 32px var(--accent-glow);
   --shadow-glass: 0 8px 32px rgba(0, 20, 40, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  color-scheme: dark;
 }
 
-/* Light theme — naka-activated kapag walang .dark class sa <html> */
+/* Light theme — naka-activate kapag walang .dark class sa <html> */
 :root:not(.dark) {
-  --background: #e8f0f7;
+  /* Clean paper-like light mode: less blue wash, stronger hierarchy. */
+  --background: #f6f8fb;
   --foreground: #0a2540;
   --surface: #ffffff;
-  --surface-raised: #f4f8fc;
-  --surface-elevated: #e6eef5;
-  --border: rgba(0, 49, 83, 0.12);
-  --border-strong: rgba(0, 49, 83, 0.25);
-  --muted: #4a6178;
+  --surface-raised: #ffffff;
+  --surface-elevated: #f0f4f8;
+  --border: rgba(10, 37, 64, 0.14);
+  --border-strong: rgba(10, 37, 64, 0.28);
+  --muted: #52677c;
 
-  --accent-glow: rgba(251, 231, 122, 0.30);
+  --fg-body: #29445e;
+  --panel: #f1f5f9;
+  --panel-strong: #e7eef5;
+  --deep: #f6f8fb;
+
+  /* Blue is the primary accent in light mode for clearer contrast. */
+  --accent: #2563eb;
+  --accent-bright: #3b82f6;
+  --accent-dim: #1d4ed8;
+  --accent-strong: #2563eb;
+  --accent-ink: #ffffff;
+  --accent-glow: rgba(37, 99, 235, 0.22);
   --shadow-sm: 0 1px 2px rgba(0, 30, 60, 0.08);
-  --shadow-md: 0 4px 16px rgba(0, 30, 60, 0.10), 0 1px 2px rgba(0, 30, 60, 0.06);
-  --shadow-lg: 0 8px 32px rgba(0, 30, 60, 0.12), 0 2px 4px rgba(0, 30, 60, 0.06);
-  --shadow-glass: 0 8px 32px rgba(0, 30, 60, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.50);
+  --shadow-md: 0 5px 18px rgba(0, 30, 60, 0.10), 0 1px 2px rgba(0, 30, 60, 0.06);
+  --shadow-lg: 0 12px 34px rgba(0, 30, 60, 0.13), 0 2px 5px rgba(0, 30, 60, 0.06);
+  --shadow-glass: 0 8px 28px rgba(0, 30, 60, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.80);
+
+  color-scheme: light;
 }
 
-/* Light mode overrides para sa hardcoded zinc colors */
-:root:not(.dark) body {
-  background: var(--background);
-  color: var(--foreground);
+/* Light mode contrast guard for text-only accent utilities. The attribute
+   selectors also cover Tailwind hover/focus variants. */
+:root:not(.dark) [class~="text-accent"],
+:root:not(.dark) [class~="group-focus-within:text-accent"]:focus-within,
+:root:not(.dark) [class~="hover:text-accent"]:hover {
+  color: #1d4ed8;
 }
 
-:root:not(.dark) .bg-zinc-900\/70,
-:root:not(.dark) .bg-zinc-900\/60,
-:root:not(.dark) .bg-zinc-900\/50,
-:root:not(.dark) .bg-zinc-900\/40,
-:root:not(.dark) .bg-zinc-900\/80 {
-  background-color: rgba(255, 255, 255, 0.75) !important;
-}
-
-:root:not(.dark) .bg-zinc-900,
-:root:not(.dark) .bg-\[\#021B30\],
-:root:not(.dark) .bg-\[\#003153\] {
-  background-color: var(--surface) !important;
-}
-
-:root:not(.dark) .bg-\[\#021B30\]\/95 {
-  background-color: rgba(232, 240, 247, 0.95) !important;
-}
-
-:root:not(.dark) .bg-zinc-800 {
-  background-color: var(--surface-elevated) !important;
-}
-
-:root:not(.dark) .bg-zinc-950 {
-  background-color: #0a2540 !important;
-}
-
-:root:not(.dark) .text-white {
-  color: var(--foreground) !important;
-}
-
-:root:not(.dark) .text-zinc-100,
-:root:not(.dark) .text-zinc-200,
-:root:not(.dark) .text-zinc-300 {
-  color: #2a4a68 !important;
-}
-
-:root:not(.dark) .text-zinc-400,
-:root:not(.dark) .text-zinc-500 {
-  color: var(--muted) !important;
-}
-
-:root:not(.dark) .text-zinc-600 {
-  color: #6a8298 !important;
-}
-
-:root:not(.dark) .border-zinc-800,
-:root:not(.dark) .border-zinc-900 {
-  border-color: var(--border) !important;
-}
-
-:root:not(.dark) .border-zinc-700 {
-  border-color: var(--border-strong) !important;
+:root:not(.dark) [class~="text-accent-bright"],
+:root:not(.dark) [class~="hover:text-accent-bright"]:hover {
+  color: #1e40af;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-muted: var(--muted);
+  --color-body: var(--fg-body);
+  --color-panel: var(--panel);
+  --color-panel-strong: var(--panel-strong);
+  --color-deep: var(--deep);
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  /* System fonts keep production builds independent of Google Fonts/network. */
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: Consolas, "Liberation Mono", monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* ------------------------------------------------------------------ */
@@ -223,24 +219,13 @@ body {
   }
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -400px 0;
-  }
-  100% {
-    background-position: 400px 0;
-  }
-}
-
-@keyframes pulse-dot {
+@keyframes skeleton-pulse {
   0%,
   100% {
-    opacity: 1;
-    transform: scale(1);
+    opacity: 0.62;
   }
   50% {
-    opacity: 0.45;
-    transform: scale(0.82);
+    opacity: 1;
   }
 }
 
@@ -257,16 +242,6 @@ body {
 @keyframes draw-check {
   to {
     stroke-dashoffset: 0;
-  }
-}
-
-@keyframes gradient-pan {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
   }
 }
 
@@ -311,9 +286,6 @@ body {
 .animate-pop {
   animation: pop 0.22s var(--ease-spring) both;
 }
-.animate-pulse-dot {
-  animation: pulse-dot 1.8s ease-in-out infinite;
-}
 .animate-float-soft {
   animation: float-soft 4s ease-in-out infinite;
 }
@@ -321,16 +293,10 @@ body {
   animation: bounce-soft 1s ease-in-out infinite;
 }
 
-/* Skeleton loading blocks (prussian blue tint) */
+/* Skeleton loading blocks — blue tint na umaayon sa theme */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.04) 75%
-  );
-  background-size: 800px 100%;
-  animation: shimmer 1.4s infinite linear;
+  background: var(--panel-strong);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
 }
 
 /* Animated checkmark — sinusundan ang stroke path */
@@ -340,41 +306,7 @@ body {
   animation: draw-check 0.3s var(--ease-out-soft) forwards;
 }
 
-/* Gradient text — butter yellow pan animation */
-.gradient-text {
-  background: linear-gradient(
-    90deg,
-    #fbe77a,
-    #ffe98a,
-    #fff3b0,
-    #fbe77a
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-pan 6s ease-in-out infinite;
-}
-
-/* Hero gradient mesh — malambot na butter yellow + prussian blue glow */
-.hero-mesh {
-  background-image:
-    radial-gradient(
-      70% 55% at 50% -10%,
-      rgba(251, 231, 122, 0.18),
-      transparent 70%
-    ),
-    radial-gradient(
-      50% 40% at 85% 10%,
-      rgba(18, 80, 112, 0.35),
-      transparent 70%
-    ),
-    radial-gradient(
-      50% 40% at 15% 10%,
-      rgba(10, 61, 92, 0.30),
-      transparent 70%
-    );
-}
+/* Accent text uses solid colors for a clean, flat visual system. */
 
 /* ── Glassmorphism utilities ──────────────────────────────────────── */
 
@@ -407,17 +339,17 @@ body {
 
 /* Light mode: glass becomes white frosted */
 :root:not(.dark) .glass-card {
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.80);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-glass);
 }
 :root:not(.dark) .glass-strong {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.90);
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid var(--border-strong);
 }
 :root:not(.dark) .glass-pill {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.70);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--border);
 }
 
 /* Legacy alias kept for compatibility */
@@ -439,12 +371,10 @@ body {
   .animate-slide-up,
   .animate-slide-down,
   .animate-pop,
-  .animate-pulse-dot,
   .animate-float-soft,
   .animate-bounce-soft,
   .skeleton,
-  .check-draw,
-  .gradient-text {
+  .check-draw {
     animation: none;
   }
   *,

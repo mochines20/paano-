@@ -1,5 +1,5 @@
 /**
- * Curated terminal & route database — REAL routes, fares, at schedules
+ * Curated terminal & route database — static route/fare/schedule snapshot
  * mula sa mga grand terminals sa Metro Manila.
  *
  * Terminals Covered:
@@ -12,8 +12,16 @@
  * - Gil Puyat / Buendia Bus Hub (Pasay/Makati)
  * - EDSA Carousel Stations
  *
- * Source: pitx.ph, oneayala.com, ph.commutetour.com, escapemanila.com (verified Aug 2026)
+ * Source references: PITX, One Ayala, BGC, and selected route references.
+ * Hindi ito live feed; re-verify ang fare at schedule sa terminal/operator.
  */
+
+export const TERMINAL_DATA_SOURCE = {
+  id: "curated-terminal-snapshot",
+  name: "PAANO curated terminal snapshot",
+  url: "https://www.pitx.ph/",
+  lastVerified: null,
+} as const;
 
 export interface TerminalRoute {
   /** Origin terminal name */
@@ -668,9 +676,9 @@ export function buildTerminalContext(
         r.notes ? `. ${r.notes}` : ""
       }`;
     });
-    return `[Terminal route data — REAL routes, gamitin ito: ${parts.join(
+    return `[Terminal route data — curated snapshot, gamitin bilang lead at i-verify: ${parts.join(
       " | ",
-    )}. Source: One Ayala, PITX, VTX Alabang, ph.commutetour.com (verified Aug 2026). Huwag mag-suggest ng lumang jeep/MRT transfer kung may direct terminal route.]`;
+    )}. Source registry: PAANO curated terminal snapshot. Huwag mag-suggest ng lumang jeep/MRT transfer kung may direct terminal route, pero i-confirm ang fare at schedule sa operator.]`;
   }
 
   const multiLeg = findMultiLegRoutes(originQuery, destQuery);
@@ -682,9 +690,9 @@ export function buildTerminalContext(
       const totalFare = legs.reduce((sum, l) => sum + l.fare, 0);
       return `${legStr} = ₱${totalFare} total, ~${timeRange(legs)} min`;
     });
-    return `[Terminal route data (multi-leg) — REAL routes, gamitin ito: ${parts.join(
+    return `[Terminal route data (multi-leg) — curated snapshot, gamitin bilang lead at i-verify: ${parts.join(
       " | ",
-    )}. Source: One Ayala, PITX, VTX, ph.commutetour.com (verified Aug 2026).]`;
+    )}. Source registry: PAANO curated terminal snapshot. I-confirm ang fare, schedule, at availability sa operator.]`;
   }
 
   return null;

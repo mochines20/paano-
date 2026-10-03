@@ -8,7 +8,7 @@ interface BotAvatarProps {
 
 /**
  * Avatar ng PAANO bot.
- * Default: /public/bot-avatar.svg (pixelated AI bot).
+ * Default: the PAANO AI logo.
  * Kung gusto mo ibang image, palitan lang ang src.
  */
 export function BotAvatar({
@@ -18,22 +18,22 @@ export function BotAvatar({
 }: BotAvatarProps) {
   return (
     <span
-      className={`relative inline-block overflow-hidden rounded-full border border-white/15 bg-[#0A3D5C] ${className}`}
+      className={`relative inline-block overflow-hidden rounded-full border border-line-strong bg-[#0A3D5C] ${className}`}
       style={{ width: size, height: size }}
     >
       {showPulse && (
         <span
-          className="animate-pulse-dot absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border border-[#021B30] bg-[#FBE77A]"
+          className="absolute -right-0.5 -top-0.5 z-10 h-2.5 w-2.5 rounded-full border border-deep bg-accent"
           aria-hidden
         />
       )}
       <Image
-        src="/bot-avatar.svg"
+        src="/brand/paano-ai-logo.png"
         alt="PAANO bot"
         width={size}
         height={size}
         unoptimized
-        className="h-full w-full object-cover"
+        className="h-full w-full object-contain p-0.5"
         onError={(e) => {
           const target = e.currentTarget;
           target.style.display = "none";

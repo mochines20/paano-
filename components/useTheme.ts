@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Theme = "dark" | "light";
 
@@ -10,11 +10,14 @@ type Theme = "dark" | "light";
  * ang nag-aapply ng class bago pa mag-hydrate, kaya walang FOUC.
  */
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark";
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const stored = localStorage.getItem("paano:theme") as Theme | null;
-    return stored === "light" ? "light" : "dark";
-  });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (stored === "light") setTheme("light");
+  }, []);
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";

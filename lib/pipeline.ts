@@ -10,11 +10,13 @@ import {
   suggestedDocQuestions,
 } from "@/lib/docs/service";
 import { groundCookingQuestion } from "@/lib/cooking/ground";
+import { findCuratedRecipe, isRecipeRequest } from "@/lib/cooking/recipes";
+import { findCuratedFirstAid } from "@/lib/first-aid/answers";
 import { matchDishes } from "@/lib/cooking/dishes";
-import { getPalengkePrices, PRICE_SOURCE_NOTE } from "@/lib/cooking/prices";
-import { askGroqVision } from "@/lib/groq";
+import { askPaanoVision } from "@/lib/llm";
 import { extractJsonObject, fallbackAnswer } from "@/lib/answers";
 import type { ChatMessage, PaanoAnswer } from "@/lib/answers";
+import { validateGeneratedAnswer } from "@/lib/safety";
 
 /**
  * Answer pipeline — ang business logic ng /api/ask, hiwalay sa HTTP layer.
@@ -27,6 +29,14 @@ import type { ChatMessage, PaanoAnswer } from "@/lib/answers";
  */
 
 export type AnswerSource = "docs-static" | "llm";
+
+/** Mga yugto ng pipeline — para sa staged/streaming UX sa client. */
+export type PipelineStage =
+  | "grounding"
+  | "grounded-commute"
+  | "grounded-cooking"
+  | "llm"
+  | "vision";
 
 export interface PipelineResult {
   answer: PaanoAnswer;
@@ -57,6 +67,45 @@ const CATEGORY_SUGGESTIONS: Record<string, string[]> = {
   diy: ["Ano ang kailangan kong bilhin sa hardware?", "Paano maiiwasan na maulit ito?"],
   first_aid: ["Paano maiiwasan ang ganitong klaseng paso o kagat?"],
 };
+
+function hasMalformedFirstAidShape(answer: PaanoAnswer): boolean {
+  if (answer.category !== "first_aid") return false;
+  const spec = answer.category_specific;
+  if (spec?.category !== "first_aid") return true;
+  const leakedFields = /^(?:category|confidence|high|medium|low|disclaimer|official_link|category_specific)\s*:?$/i;
+  return (
+    spec.do_list.length === 0 ||
+    spec.don_t_list.length === 0 ||
+    !spec.see_doctor_threshold.trim() ||
+    answer.steps.some((step) => leakedFields.test(step.trim()))
+  );
+}
+
+function unvalidatedFirstAidFallback(): PaanoAnswer {
+  return {
+    category: "first_aid",
+    title: "Kailangan ng Mas Malinaw na Detalye",
+    summary:
+      "Hindi ma-validate nang maayos ang nabuong first-aid instruction, kaya hindi muna ito dapat sundin.",
+    steps: [
+      "Huwag munang sundin ang naunang medical instruction kung hindi malinaw ang kondisyon o pinsala.",
+      "Kung may hirap sa paghinga, malakas na pagdurugo, pagkawala ng malay, o mabilis na paglala, tumawag sa 911 o pumunta sa emergency room.",
+      "Ilarawan ang eksaktong nangyari, lokasyon ng pinsala, edad ng pasyente, at mga sintomas para makapagbigay ng mas ligtas na gabay.",
+    ],
+    confidence: "low",
+    disclaimer:
+      "General information lamang—hindi diagnosis. Kailangan ng health professional para sa seryoso o hindi malinaw na sintomas.",
+    official_link: { label: "DOH Philippines", url: "https://doh.gov.ph/" },
+    category_specific: {
+      category: "first_aid",
+      severity: "mild",
+      do_list: ["Tumawag sa 911 o magpatingin kung may emergency red flags."],
+      don_t_list: ["Huwag sundin ang hindi malinaw o hindi ma-validate na medical instruction."],
+      see_doctor_threshold:
+        "Magpatingin agad kapag may hirap sa paghinga, malakas na pagdurugo, pagkawala ng malay, o mabilis na paglala.",
+    },
+  };
+}
 
 /** Build contextual follow-up suggestions based on the actual answer.
  * Hinahanap ang keywords sa title/summary para mas relevant ang chips.
@@ -163,9 +212,40 @@ function contextualSuggestions(answer: PaanoAnswer): string[] {
   return CATEGORY_SUGGESTIONS[answer.category] ?? [];
 }
 
+export function isGreetingQuestion(text: string): boolean {
+  return /^(?:hi|hello|hey|kumusta|kamusta|magandang\s+(?:umaga|hapon|gabi)|good\s+(?:morning|afternoon|evening))(?:\s+po)?[!,.\s]*$/i.test(
+    text.trim(),
+  );
+}
+
+function greetingAnswer(): PipelineResult {
+  const answer: PaanoAnswer = {
+    category: "generic",
+    title: "Kumusta! Ano ang kailangan mo?",
+    summary:
+      "Nandito si PAANO para tumulong sa commute, lutong bahay, gawaing bahay, first aid, at government documents.",
+    steps: [],
+    confidence: "high",
+    disclaimer: null,
+    official_link: null,
+    category_specific: null,
+  };
+  return {
+    answer,
+    source: "docs-static",
+    suggestions: [
+      "Paano magluto ng mabilis na ulam?",
+      "Paano magcommute papuntang Quiapo?",
+      "Ano ang gagawin sa maliit na paso?",
+    ],
+    repaired: false,
+    raw: null,
+  };
+}
+
 export async function runAnswerPipeline(
   messages: ChatMessage[],
-  opts?: { image?: string },
+  opts?: { image?: string; onStage?: (stage: PipelineStage) => void },
 ): Promise<PipelineResult> {
   const lastUserIndex = [...messages].reverse().findIndex((m) => m.role === "user");
   const lastUser =
@@ -173,7 +253,62 @@ export async function runAnswerPipeline(
 
   // 1. Image → recipe: photo ng ingredients → anong ulam?
   if (opts?.image && lastUser) {
-    return handleImageQuestion(lastUser.content, opts.image);
+    return handleImageQuestion(lastUser.content, opts.image, opts.onStage);
+  }
+
+  // Stable classic recipe: avoid letting price-grounding or a small local
+  // model invent ingredients for a basic adobo question.
+  if (
+    lastUser &&
+    isRecipeRequest(lastUser.content) &&
+    /\badobo\b/i.test(lastUser.content) &&
+    !/gata|spicy|maanghang|kamatis|tomato|sili|kangkong/i.test(lastUser.content)
+  ) {
+    return classicAdoboAnswer();
+  }
+
+  // Safety-critical household task: do not let the small model improvise
+  // electrical cleaning instructions (it previously suggested immersing the
+  // fan in water). Keep this common task on a reviewed answer path.
+  if (lastUser && /(?:electric fan|bentilador)/i.test(lastUser.content) && /(?:linis|linisin|clean)/i.test(lastUser.content)) {
+    return electricFanCleaningAnswer();
+  }
+
+  // Greetings do not need an LLM answer card. Keeping this deterministic
+  // avoids invented steps, confidence metadata, and irrelevant disclaimers.
+  if (lastUser && isGreetingQuestion(lastUser.content)) {
+    return greetingAnswer();
+  }
+
+  // Common first-aid questions use a reviewed, deterministic answer. This
+  // prevents a small model from leaking JSON fields or inventing unsafe steps.
+  if (lastUser) {
+    const curatedFirstAid = findCuratedFirstAid(lastUser.content);
+    if (curatedFirstAid) {
+      return {
+        answer: curatedFirstAid,
+        source: "docs-static",
+        suggestions: contextualSuggestions(curatedFirstAid),
+        repaired: false,
+        raw: null,
+      };
+    }
+  }
+
+  // Common recipes use a reviewed local answer for speed and completeness.
+  // This prevents a small model from returning a recipe with missing
+  // ingredients/servings just because its JSON was technically valid.
+  if (lastUser) {
+    const curatedRecipe = findCuratedRecipe(lastUser.content);
+    if (curatedRecipe) {
+      return {
+        answer: curatedRecipe,
+        source: "docs-static",
+        suggestions: contextualSuggestions(curatedRecipe),
+        repaired: false,
+        raw: null,
+      };
+    }
   }
 
   // 2. Static docs guide — commute muna ang priority para hindi ma-flag na
@@ -205,9 +340,13 @@ export async function runAnswerPipeline(
   } = { commute: null, cooking: null };
 
   if (lastUser) {
+    opts?.onStage?.("grounding");
     const commute = await groundCommuteQuestion(lastUser.content);
     const cooking = commute ? null : await groundCookingQuestion(lastUser.content);
     grounding = { commute, cooking };
+    opts?.onStage?.(
+      commute ? "grounded-commute" : cooking ? "grounded-cooking" : "llm",
+    );
     const context = commute?.context ?? cooking?.context;
     if (context) {
       groundedMessages = [
@@ -219,18 +358,121 @@ export async function runAnswerPipeline(
   }
 
   // 5. LLM + data override (commute fares/routes).
+  opts?.onStage?.("llm");
   const result = await askPaano(groundedMessages);
-  const answer = grounding.commute
+  const groundedAnswer = grounding.commute
     ? applyCommuteGrounding(result.answer, grounding.commute)
     : result.answer;
+  // "High" is reserved for curated/static or externally grounded answers.
+  // A free-form local model cannot establish that confidence by itself.
+  const answer = groundedAnswer.confidence === "high"
+    ? { ...groundedAnswer, confidence: "medium" as const }
+    : groundedAnswer;
+  let safeAnswer = validateGeneratedAnswer(answer);
+  if (hasMalformedFirstAidShape(safeAnswer)) {
+    safeAnswer = unvalidatedFirstAidFallback();
+  }
+  if (safeAnswer.category === "cooking" && safeAnswer.category_specific?.category === "cooking") {
+    const incomplete = safeAnswer.category_specific.ingredients.length < 3 || !safeAnswer.category_specific.servings.trim();
+    if (incomplete) {
+      safeAnswer = {
+        ...safeAnswer,
+        confidence: "low",
+        disclaimer: safeAnswer.disclaimer ?? "Kulang ang structured recipe details. I-verify ang ingredients at servings bago magluto, o itanong ulit nang mas specific.",
+      };
+    }
+  }
+  if (grounding.commute && safeAnswer.category === "commute") {
+    safeAnswer = {
+      ...safeAnswer,
+      provenance: grounding.commute.provenance,
+    };
+  } else if (grounding.cooking?.priceProvenance && safeAnswer.category === "cooking") {
+    safeAnswer = { ...safeAnswer, provenance: grounding.cooking.priceProvenance };
+  } else if (safeAnswer.category === "first_aid") {
+    safeAnswer = {
+      ...safeAnswer,
+      confidence: safeAnswer.confidence === "high" ? "medium" : safeAnswer.confidence,
+      provenance: {
+        label: "General household first-aid guidance",
+        asOf: null,
+        status: "needs_review",
+        note: "General information lamang—hindi diagnosis. Para sa emergency o lumalalang sintomas, tumawag sa health professional.",
+        url: "https://doh.gov.ph/",
+      },
+    };
+  }
 
   return {
-    answer,
+    answer: safeAnswer,
     source: "llm",
-    suggestions: contextualSuggestions(answer),
+    suggestions: contextualSuggestions(safeAnswer),
     repaired: result.repaired,
     raw: result.raw,
   };
+}
+
+function classicAdoboAnswer(): PipelineResult {
+  const answer: PaanoAnswer = {
+    category: "cooking",
+    title: "Paano Magluto ng Adobo",
+    summary:
+      "Igisa ang bawang, ilagay ang manok o baboy, saka pakuluan sa toyo at suka hanggang lumambot at kumapal ang sauce.",
+    steps: [
+      "Maghiwa ng 1 ulo ng bawang. Igisa sa 1 kutsarang mantika hanggang mabango.",
+      "Ilagay ang 1 kilo manok o baboy at haluin hanggang bahagyang mag-brown.",
+      "Idagdag ang 1/2 tasa toyo, 1/2 tasa suka, 1/2 tasa tubig, 2 dahon ng laurel, at 1 kutsaritang paminta.",
+      "Pakuluan nang 5 minuto nang hindi hinahalo, saka hinaan ang apoy at lutuin nang 30–45 minuto hanggang malambot.",
+      "Tikman at i-adjust ang alat. Kung gusto ng tuyong adobo, pakuluan pa hanggang kumapal ang sauce; ihain kasama ng kanin.",
+    ],
+    confidence: "high",
+    disclaimer: null,
+    official_link: null,
+    category_specific: {
+      category: "cooking",
+      ingredients: [
+        { item: "manok o baboy", amount: "1 kilo" },
+        { item: "toyo", amount: "1/2 tasa" },
+        { item: "suka", amount: "1/2 tasa" },
+        { item: "bawang", amount: "1 ulo" },
+        { item: "dahon ng laurel", amount: "2 dahon" },
+        { item: "paminta", amount: "1 kutsarita" },
+        { item: "tubig", amount: "1/2 tasa" },
+      ],
+      servings: "4–6 tao",
+      tips: [
+        "Huwag haluin agad pagkatapos ilagay ang suka para hindi maging mapait ang sauce.",
+        "Suggestion: Pwedeng manok, baboy, o half-and-half kung gusto ng mas malasa.",
+      ],
+    },
+  };
+  return { answer, source: "docs-static", suggestions: ["Paano ang pork adobo?", "Paano ang adobo sa gata?"], repaired: false, raw: null };
+}
+
+function electricFanCleaningAnswer(): PipelineResult {
+  const answer: PaanoAnswer = {
+    category: "diy",
+    title: "Paano Maglinis ng Electric Fan nang Ligtas",
+    summary:
+      "I-unplug muna ang electric fan, alisin ang grille at blade kung kaya, at linisin ang mga ito nang hiwalay. Huwag basain o ilubog ang motor at electrical parts.",
+    steps: [
+      "Patayin at i-unplug ang electric fan bago hawakan o kalasin.",
+      "Alisin ang front grille at blade ayon sa manual; kung hindi sigurado, linisin na nakakabit ang parts.",
+      "Gumamit ng soft brush o vacuum para sa alikabok sa grille, blade, at likod ng motor.",
+      "Punasan ang grille at blade gamit ang bahagyang mamasa-masang tela, pagkatapos ay patuyuin nang lubos.",
+      "Huwag mag-spray o magbuhos ng tubig sa motor, switch, cord, o housing. Ibalik ang mga bahagi kapag ganap nang tuyo bago isaksak.",
+    ],
+    confidence: "high",
+    disclaimer: "Kung may amoy sunog, punit na cord, spark, o sobrang init, huwag gamitin; ipasuri sa kwalipikadong technician.",
+    official_link: null,
+    category_specific: {
+      category: "diy",
+      tools: ["soft brush o vacuum", "bahagyang mamasa-masang tela"],
+      materials: ["malinis na tubig para sa tela lamang"],
+      safety_warning: "I-unplug muna. Huwag ilubog o basain ang motor at electrical parts.",
+    },
+  };
+  return { answer, source: "docs-static", suggestions: ["Paano linisin ang aircon filter?", "Kailan ipagawa ang electric fan?"] , repaired: false, raw: null };
 }
 
 /**
@@ -240,9 +482,14 @@ export async function runAnswerPipeline(
  *  3. Compose cooking answer na may detected ingredients + dish candidates
  *     + palengke prices
  */
-async function handleImageQuestion(text: string, imageDataUrl: string): Promise<PipelineResult> {
+async function handleImageQuestion(
+  text: string,
+  imageDataUrl: string,
+  onStage?: (stage: PipelineStage) => void,
+): Promise<PipelineResult> {
   try {
-    const raw = await askGroqVision(
+    onStage?.("vision");
+    const raw = await askPaanoVision(
       'Tukuyin ang mga sangkap/pagkain na nakikita sa larawan. Return ONLY JSON: {"ingredients":[{"item":"pangalan","qty":"dami o null"}]}',
       imageDataUrl,
     );
@@ -265,23 +512,18 @@ async function handleImageQuestion(text: string, imageDataUrl: string): Promise<
     }
 
     const dishes = matchDishes(ingredients, 5);
-    const prices = await getPalengkePrices();
-    const priceText = prices
-      .slice(0, 10)
-      .map((p) => `${p.item} ₱${p.pricePerKg}/kg`)
-      .join(", ");
-
     const composed =
       `${text.trim() || "Anong ulam ang pwedeng lutuin sa mga sangkap na ito?"}\n\n` +
       `[Detected ingredients mula sa larawan: ${ingredients.join(", ")}]\n` +
-      `[Candidate Filipino dishes (kung tugma): ${dishes.map((d) => d.name).join("; ") || "wala sa listahan — magmungkahi ng iba"}]\n` +
-      `[${PRICE_SOURCE_NOTE} ${priceText}]`;
+      `[Candidate Filipino dishes (kung tugma): ${dishes.map((d) => d.name).join("; ") || "wala sa listahan — magmungkahi ng iba"}]`;
 
+    onStage?.("llm");
     const result = await askPaano([{ role: "user", content: composed }]);
+    const safeAnswer = validateGeneratedAnswer(result.answer);
     return {
-      answer: result.answer,
+      answer: safeAnswer,
       source: "llm",
-      suggestions: contextualSuggestions(result.answer),
+      suggestions: contextualSuggestions(safeAnswer),
       repaired: result.repaired,
       raw: result.raw,
     };

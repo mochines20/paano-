@@ -1,4 +1,4 @@
-import { getPalengkePrices, PRICE_SOURCE_NOTE } from "@/lib/cooking/prices";
+import { getPalengkePrices, getPriceProvenance, getPriceSourceNote } from "@/lib/cooking/prices";
 
 /**
  * Cooking grounding — budget/pantry mode, ginagawa nang conversational:
@@ -10,6 +10,7 @@ export interface CookingGrounding {
   context: string;
   budget: number | null;
   pantryItems: string[];
+  priceProvenance?: ReturnType<typeof getPriceProvenance>;
 }
 
 const COOKING_KEYWORDS = [
@@ -42,6 +43,7 @@ const COOKING_KEYWORDS = [
 ];
 
 const BUDGET_RE = /(?:₱|php|pesos?|piso)\s*(\d{2,5})/i;
+const PRICE_REQUEST_RE = /(?:magkano|presyo|budget|gastos|cost|price|₱|php|pesos?|piso)/i;
 
 const PANTRY_ITEMS = [
   "manok",
@@ -79,7 +81,6 @@ export async function groundCookingQuestion(
   try {
     if (!isCookingQuestion(question)) return null;
 
-    const prices = await getPalengkePrices();
     const budget = BUDGET_RE.exec(question)?.[1]
       ? Number(BUDGET_RE.exec(question)![1])
       : null;
@@ -90,23 +91,41 @@ export async function groundCookingQuestion(
       new RegExp(`(?:may|meron|available|gagamitin|natira|tira)\\s+[^.,!?]{0,40}?\\b${item}\\b`, "i").test(q),
     ).slice(0, 6);
 
+    // Recipe-only questions must not receive a market-price list. The small
+    // model may copy those reference items into the recipe as if they were
+    // ingredients, which produces fabricated answers and costs.
+    const needsPriceGrounding = Boolean(budget || PRICE_REQUEST_RE.test(question));
+    if (!needsPriceGrounding && pantryItems.length === 0) return null;
+
     const parts: string[] = [];
-    parts.push("[Palengke price reference — gamitin ito kung tugma:");
-    parts.push(
-      prices
-        .slice(0, 14)
-        .map((p) => `${p.item} ₱${p.pricePerKg}${p.unit ? `/${p.unit}` : "/kg"}`)
-        .join(", "),
-    );
+    let priceProvenance: CookingGrounding["priceProvenance"];
+    if (needsPriceGrounding) {
+      const prices = await getPalengkePrices();
+      priceProvenance = getPriceProvenance();
+      const relevant = pantryItems.length > 0
+        ? prices.filter((p) => pantryItems.some((item) => p.item.toLowerCase().includes(item)))
+        : prices;
+      parts.push("[Palengke price reference — presyo lang ito, hindi listahan ng ingredients:");
+      parts.push(
+        relevant
+          .slice(0, 14)
+          .map((p) => `${p.item} ₱${p.pricePerKg}${p.unit ? `/${p.unit}` : "/kg"}`)
+          .join(", "),
+      );
+    }
     if (budget) {
       parts.push(`Budget ng user: ₱${budget} — magmungkahi ng ulam na kasya dito, at i-breakdown ang tantiya ng gastos.`);
     }
     if (pantryItems.length > 0) {
       parts.push(`May pantry ang user: ${pantryItems.join(", ")} — unahin ang mga ulam na gumagamit nito.`);
     }
-    parts.push(`${PRICE_SOURCE_NOTE} Huwag mag-imbento ng presyo na wala sa reference.]`);
+    if (needsPriceGrounding) {
+      parts.push(`${getPriceSourceNote()} Huwag mag-imbento ng presyo na wala sa reference.]`);
+    } else {
+      parts.push("Gamitin ang pantry items bilang context lamang; huwag magdagdag ng presyo.");
+    }
 
-    return { context: parts.join(" "), budget, pantryItems };
+    return { context: parts.join(" "), budget, pantryItems, priceProvenance };
   } catch {
     return null;
   }

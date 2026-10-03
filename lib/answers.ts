@@ -32,6 +32,14 @@ export interface OfficialLink {
   url: string;
 }
 
+export interface AnswerProvenance {
+  label: string;
+  asOf: string | null;
+  status: "official" | "curated" | "estimate" | "needs_review";
+  note: string;
+  url?: string | null;
+}
+
 export interface TimeRange {
   min: number;
   max: number;
@@ -109,6 +117,8 @@ export interface PaanoAnswer {
   confidence: Confidence;
   disclaimer: string | null;
   official_link: OfficialLink | null;
+  /** Evidence/freshness metadata shown to users for changing information. */
+  provenance?: AnswerProvenance | null;
   category_specific: CategorySpecific | null;
 }
 
@@ -142,6 +152,62 @@ function asStringArray(v: unknown): string[] {
         .filter((x): x is string => x !== null),
     ),
   ].slice(0, 30);
+}
+
+/**
+ * Tanggalin ang model metadata na minsan napapasa bilang steps.
+ * Halimbawa: ["confidence", "high", "disclaimer", "..."]
+ * Kapag may disclaimer na napunta sa dulo ng steps, ibalik ito bilang tunay
+ * na disclaimer para hindi ito lumabas na numbered instruction.
+ */
+function cleanStructuredSteps(
+  rawSteps: unknown,
+  rawDisclaimer: unknown,
+): { steps: string[]; disclaimer: string | null } {
+  if (!Array.isArray(rawSteps)) {
+    return { steps: [], disclaimer: asString(rawDisclaimer) };
+  }
+
+  const steps: string[] = [];
+  let leakedDisclaimer: string | null = null;
+  let readingDisclaimer = false;
+
+  for (const value of rawSteps) {
+    const text = asString(value);
+    if (!text) continue;
+
+    const metadataKey = /^(?:category|title|summary|steps|confidence|official_link|category_specific)\s*:?(?:\s|$)/i;
+    const sourceKey = /^(?:source|official\s+source|opisyal\s+na\s+source)\s*:?/i;
+    if (sourceKey.test(text) || /^(?:https?:\/\/|www\.)\S+$/i.test(text)) continue;
+    if (metadataKey.test(text)) {
+      const inlineConfidence = text.match(/^confidence\s*:\s*(high|medium|low)$/i);
+      if (inlineConfidence) continue;
+      if (/^confidence\s*:?(?:\s|$)/i.test(text)) continue;
+      if (/^disclaimer\s*:/i.test(text)) {
+        const inline = text.replace(/^disclaimer\s*:\s*/i, "").trim();
+        if (inline) leakedDisclaimer = inline;
+        readingDisclaimer = true;
+      }
+      continue;
+    }
+
+    if (/^disclaimer\s*$/i.test(text)) {
+      readingDisclaimer = true;
+      continue;
+    }
+    if (/^(?:high|medium|low)$/i.test(text)) continue;
+
+    if (readingDisclaimer) {
+      leakedDisclaimer = leakedDisclaimer ? `${leakedDisclaimer} ${text}` : text;
+    } else {
+      steps.push(text);
+    }
+  }
+
+  return {
+    steps: [...new Set(steps)].slice(0, 30),
+    disclaimer: asString(rawDisclaimer) ?? leakedDisclaimer,
+  };
 }
 
 function asNumber(v: unknown): number | null {
@@ -203,14 +269,16 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
     ? (r.confidence as Confidence)
     : "medium";
 
+  const cleaned = cleanStructuredSteps(r.steps, r.disclaimer);
   const base: PaanoAnswer = {
     category,
     title: asString(r.title) ?? "Paano nga ba?",
     summary: asString(r.summary) ?? "",
-    steps: asStringArray(r.steps),
+    steps: cleaned.steps,
     confidence,
-    disclaimer: asString(r.disclaimer),
+    disclaimer: cleaned.disclaimer,
     official_link: normalizeLink(r.official_link),
+    provenance: normalizeProvenance(r.provenance),
     category_specific: null,
   };
 
@@ -317,6 +385,24 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
       break;
   }
   return base;
+}
+
+function normalizeProvenance(v: unknown): AnswerProvenance | null {
+  if (typeof v !== "object" || v === null) return null;
+  const p = v as Record<string, unknown>;
+  const label = asString(p.label);
+  const note = asString(p.note);
+  if (!label || !note) return null;
+  const status = ["official", "curated", "estimate", "needs_review"].includes(String(p.status))
+    ? (p.status as AnswerProvenance["status"])
+    : "needs_review";
+  return {
+    label,
+    asOf: asString(p.asOf),
+    status,
+    note,
+    url: normalizeLink(p.url)?.url ?? null,
+  };
 }
 
 function normalizeLink(v: unknown): OfficialLink | null {

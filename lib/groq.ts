@@ -13,8 +13,10 @@ import { PAANO_SYSTEM_PROMPT } from "@/lib/prompts/system-prompt";
 
 const GROQ_BASE = "https://api.groq.com/openai/v1";
 const DEFAULT_GROQ_MODEL = "openai/gpt-oss-20b";
-/** Vision model para sa image→recipe (na-verify: may image input support). */
-const DEFAULT_GROQ_VISION_MODEL = "qwen/qwen3.6-27b";
+// Intentionally blank: the primary GPT-OSS model is text-only. Vision is
+// routed through Gemini first, then Ollama, unless a supported Groq vision
+// model is explicitly configured in GROQ_VISION_MODEL.
+const DEFAULT_GROQ_VISION_MODEL = "";
 
 export function groqConfigured(): boolean {
   return Boolean(process.env.GROQ_API_KEY);
@@ -85,6 +87,7 @@ export async function askGroqVision(text: string, imageDataUrl: string): Promise
     );
   }
   const model = process.env.GROQ_VISION_MODEL || DEFAULT_GROQ_VISION_MODEL;
+  if (!model) throw new Error("GROQ_VISION_MODEL is not configured.");
 
   const res = await fetch(`${GROQ_BASE}/chat/completions`, {
     method: "POST",

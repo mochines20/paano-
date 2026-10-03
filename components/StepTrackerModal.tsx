@@ -1,6 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
+import {
+  IconCommute,
+  IconCooking,
+  IconDiy,
+  IconTimer,
+} from "@/components/icons";
+import type { ComponentType } from "react";
+import { cleanStepText } from "@/components/answer/formatStepText";
+
+const TRACK_FILL: Record<string, string> = {
+  cooking: "bg-blue-500",
+  commute: "bg-sky-500",
+  diy: "bg-emerald-500",
+  first_aid: "bg-rose-500",
+  docs: "bg-blue-500",
+  generic: "bg-accent",
+};
+
+const TRACK_TEXT: Record<string, string> = {
+  cooking: "text-blue-700 dark:text-blue-300",
+  commute: "text-sky-600 dark:text-sky-300",
+  diy: "text-emerald-600 dark:text-emerald-300",
+  first_aid: "text-rose-600 dark:text-rose-300",
+  docs: "text-blue-700 dark:text-blue-300",
+  generic: "text-accent",
+};
 
 function extractStepSeconds(text: string): number | null {
   if (!text) return null;
@@ -12,6 +39,22 @@ function extractStepSeconds(text: string): number | null {
   if (hourMatch) return parseInt(hourMatch[1], 10) * 3600;
   if (secondMatch) return parseInt(secondMatch[1], 10);
   return null;
+}
+
+function StepIcon({
+  category,
+  className,
+}: {
+  category: string;
+  className?: string;
+}) {
+  const Icon: ComponentType<{ className?: string }> =
+    category === "cooking"
+      ? IconCooking
+      : category === "commute"
+        ? IconCommute
+        : IconDiy;
+  return <Icon className={className} />;
 }
 
 export function StepTrackerModal({
@@ -33,7 +76,7 @@ export function StepTrackerModal({
   const [timerRunning, setTimerRunning] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Auto-detected default seconds for current step
   const defaultStepSeconds = useMemo(() => {
@@ -147,10 +190,10 @@ export function StepTrackerModal({
   const isCooking = category === "cooking";
   const isCommute = category === "commute";
   const modeTitle = isCooking
-    ? "👨‍🍳 Cook Mode Active"
+    ? "Cook Mode Active"
     : isCommute
-    ? "🚌 Biyahe Tracker Active"
-    : "🛠️ Step Tracker Active";
+      ? "Biyahe Tracker Active"
+      : "Step Tracker Active";
 
   const toggleStepDone = (index: number) => {
     setCompletedSteps((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -162,25 +205,34 @@ export function StepTrackerModal({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#021B30] text-white animate-fade-up">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    (
+    <div
+      className="animate-fade-up fixed inset-0 z-50 flex flex-col bg-deep text-foreground"
+      role="dialog"
+      aria-modal="true"
+      aria-label={modeTitle}
+    >
       {/* Top App Bar */}
-      <header className="flex items-center justify-between border-b border-white/10 bg-[#021B30]/80 px-4 py-3 backdrop-blur-xl backdrop-saturate-150">
-        <div className="flex items-center gap-2.5">
+      <header className="flex items-center justify-between gap-2 border-b border-line bg-deep/80 px-4 py-3 backdrop-blur-xl backdrop-saturate-150">
+        <div className="min-w-0 flex items-center gap-2.5">
           <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+            className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold ${
               isCooking
-                ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40"
+                ? "bg-blue-500/20 text-blue-700 ring-1 ring-blue-500/40 dark:text-blue-300"
                 : isCommute
-                ? "bg-sky-500/20 text-sky-300 ring-1 ring-sky-500/40"
-                : "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40"
+                  ? "bg-sky-500/20 text-sky-700 ring-1 ring-sky-500/40 dark:text-sky-300"
+                  : "bg-emerald-500/20 text-emerald-700 ring-1 ring-emerald-500/40 dark:text-emerald-300"
             }`}
           >
+            <StepIcon category={category} className="h-3.5 w-3.5" />
             {modeTitle}
           </span>
           {wakeLockActive && (
-            <span className="hidden items-center gap-1 text-[10px] font-semibold text-emerald-400 sm:inline-flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="hidden items-center gap-1 text-[11px] font-semibold text-emerald-600 sm:inline-flex dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
               Naka-on ang screen (No sleep)
             </span>
           )}
@@ -189,77 +241,86 @@ export function StepTrackerModal({
         <button
           onClick={onClose}
           aria-label="Isara ang step tracker"
-          className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 backdrop-blur hover:bg-white/10 hover:text-white transition-colors active:scale-95 focus-ring"
+          className="rounded-full border border-line bg-panel px-3 py-1.5 text-xs font-bold text-body backdrop-blur transition-colors hover:bg-panel-strong hover:text-foreground active:scale-95 focus-ring"
         >
-          Tapusin (Exit) ✕
+          Tapusin (Exit)
+          <svg viewBox="0 0 24 24" className="ml-1 inline h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
         </button>
       </header>
 
       {/* Main Large Step Viewer */}
-      <main className="flex flex-1 flex-col justify-between overflow-y-auto px-4 py-6 sm:px-8 sm:py-10 max-w-3xl mx-auto w-full">
+      <main className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col justify-start gap-6 overflow-y-auto px-4 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:gap-8 sm:px-8 sm:py-10 sm:pb-10">
         <div>
           {/* Progress Indicator */}
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-widest text-zinc-400">
+            <span className="text-xs font-black uppercase tracking-widest text-muted">
               HAKBANG {currentStep + 1} NG {steps.length}
             </span>
-            <span className="text-xs font-bold text-orange-400">
+            <span className={`text-xs font-bold ${TRACK_TEXT[category] ?? "text-accent"}`}>
               {Math.round(((currentStep + 1) / steps.length) * 100)}% tapos
             </span>
           </div>
 
-          <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-panel-strong">
             <div
               className={`h-full transition-all duration-300 ${
-                isCooking
-                  ? "bg-amber-500"
-                  : isCommute
-                  ? "bg-sky-500"
-                  : "bg-orange-500"
+                TRACK_FILL[category] ?? "bg-accent"
               }`}
               style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>
 
-          <h2 className="mb-3 text-sm font-semibold text-zinc-400">{title}</h2>
+          <h2 className="mb-3 text-sm font-semibold text-muted">{title}</h2>
 
           {/* Large Step Text Card */}
           <div
-            className={`rounded-3xl border p-6 sm:p-8 shadow-2xl transition-all ${
+            className={`min-w-0 rounded-3xl border p-4 shadow-2xl transition-all sm:p-6 lg:p-8 ${
               completedSteps[currentStep]
-                ? "border-emerald-500/40 bg-emerald-950/20"
-                : "border-white/10 bg-white/5 backdrop-blur"
+                ? "border-emerald-500/40 bg-emerald-500/10"
+                : "border-line bg-panel backdrop-blur"
             }`}
           >
-            <div className="mb-4 flex items-center justify-between">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#FBE77A] text-base font-black text-[#0A2540] shadow-md">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent text-base font-black text-accent-ink shadow-md">
                 {currentStep + 1}
               </span>
               <button
                 onClick={() => toggleStepDone(currentStep)}
-                className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all ${
+                aria-pressed={!!completedSteps[currentStep]}
+                className={`rounded-full px-3.5 py-1 text-xs font-bold transition-all focus-ring ${
                   completedSteps[currentStep]
-                    ? "bg-emerald-500 text-[#0A2540]"
-                    : "bg-white/5 text-slate-400 hover:text-slate-200"
+                    ? "bg-emerald-500 text-white"
+                    : "bg-panel text-muted hover:bg-panel-strong hover:text-body"
                 }`}
               >
-                {completedSteps[currentStep] ? "✓ Tapos na" : "Mark as done"}
+                {completedSteps[currentStep] ? (
+                  <>
+                    <svg viewBox="0 0 24 24" className="mr-1 inline h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    Tapos na
+                  </>
+                ) : (
+                  "Mark as done"
+                )}
               </button>
             </div>
 
-            <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold leading-snug text-zinc-100 text-balance">
-              {steps[currentStep]}
+            <p className="max-w-prose break-words text-lg font-extrabold leading-8 text-body text-pretty sm:text-2xl sm:leading-9 lg:text-3xl lg:leading-10">
+              {cleanStepText(steps[currentStep])}
             </p>
           </div>
 
           {/* Smart Step Timer Box */}
           {activeTimerSeconds !== null && (
-            <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 flex flex-wrap items-center justify-between gap-3 animate-slide-down">
+            <div className="animate-slide-down mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
               <div className="flex items-center gap-2.5">
-                <span className="text-xl">⏱️</span>
+                <IconTimer className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
                 <div>
-                  <p className="text-xs font-bold text-amber-300">Step Cooking / Transit Timer</p>
-                  <p className="text-2xl font-black text-amber-400 tracking-wider">
+                  <p className="text-xs font-bold text-amber-700 dark:text-amber-300">Step Timer</p>
+                  <p className="text-2xl font-black tracking-wider text-amber-600 dark:text-amber-400">
                     {formatTimer(activeTimerSeconds)}
                   </p>
                 </div>
@@ -268,10 +329,10 @@ export function StepTrackerModal({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setTimerRunning(!timerRunning)}
-                  className={`rounded-full px-4 py-2 text-xs font-black transition-all ${
+                  className={`rounded-full px-4 py-2 text-xs font-black transition-all focus-ring ${
                     timerRunning
                       ? "bg-rose-500 text-white hover:bg-rose-600"
-                      : "bg-amber-500 text-[#0A2540] hover:bg-amber-400 shadow-md shadow-amber-500/20"
+                      : "bg-amber-500 text-white shadow-md shadow-amber-500/20 hover:bg-amber-400 dark:text-[#0A2540]"
                   }`}
                 >
                   {timerRunning ? "Pause" : activeTimerSeconds === 0 ? "Ulitin" : "Simulan ang Timer"}
@@ -280,7 +341,7 @@ export function StepTrackerModal({
                   onClick={() =>
                     setCustomTimerSeconds((prev) => ((prev ?? defaultStepSeconds ?? 0) + 60))
                   }
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-300 backdrop-blur hover:bg-white/10"
+                  className="rounded-full border border-line bg-panel px-3 py-2 text-xs font-bold text-body backdrop-blur hover:bg-panel-strong focus-ring"
                 >
                   +1 min
                 </button>
@@ -290,29 +351,38 @@ export function StepTrackerModal({
         </div>
 
         {/* Bottom Step Navigation Bar */}
-        <div className="mt-8 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               onClick={() => goToStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-4 text-sm font-bold text-slate-300 backdrop-blur transition-all hover:bg-white/10 disabled:opacity-30 active:scale-98"
+              className="flex min-w-0 items-center justify-center gap-2 rounded-2xl border border-line bg-panel px-3 py-3 text-center text-sm font-bold leading-tight text-body backdrop-blur transition-all hover:bg-panel-strong active:scale-[0.98] focus-ring disabled:opacity-30 sm:py-4"
             >
-              ← Naunang Hakbang
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Naunang Hakbang
             </button>
 
             {currentStep === steps.length - 1 ? (
               <button
                 onClick={onClose}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 text-sm font-black text-[#0A2540] shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-400 active:scale-98"
+                className="flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-3 py-3 text-center text-sm font-black leading-tight text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-emerald-400 active:scale-[0.98] focus-ring sm:py-4"
               >
-                Tapos na ang Lahat! ✓
+                Tapos na ang Lahat!
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
               </button>
             ) : (
               <button
                 onClick={() => goToStep(Math.min(steps.length - 1, currentStep + 1))}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-[#FBE77A] py-4 text-sm font-black text-[#0A2540] shadow-lg shadow-[#FBE77A]/30 transition-all hover:bg-[#FFE98A] active:scale-98"
+                className="flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-accent px-3 py-3 text-center text-sm font-black leading-tight text-accent-ink shadow-lg shadow-accent/30 transition-all hover:bg-accent-bright active:scale-[0.98] focus-ring sm:py-4"
               >
-                Susunod na Hakbang →
+                Susunod na Hakbang
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
               </button>
             )}
           </div>
@@ -324,12 +394,13 @@ export function StepTrackerModal({
                 key={idx}
                 onClick={() => goToStep(idx)}
                 aria-label={`Pumunta sa hakbang ${idx + 1}`}
-                className={`h-2.5 rounded-full transition-all ${
+                aria-current={idx === currentStep}
+                className={`h-2.5 rounded-full transition-all focus-ring ${
                   idx === currentStep
-                    ? "w-8 bg-orange-500"
+                    ? `w-8 ${TRACK_FILL[category] ?? "bg-accent"}`
                     : completedSteps[idx]
-                    ? "w-2.5 bg-emerald-500"
-                    : "w-2.5 bg-white/10 hover:bg-white/20"
+                      ? "w-2.5 bg-emerald-500"
+                      : "w-2.5 bg-panel-strong hover:bg-muted"
                 }`}
               />
             ))}
@@ -337,5 +408,7 @@ export function StepTrackerModal({
         </div>
       </main>
     </div>
+    ),
+    document.body,
   );
 }

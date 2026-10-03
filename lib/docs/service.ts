@@ -1,14 +1,29 @@
 import { DOC_GUIDES, DOC_TITLES } from "@/lib/docs/data";
 import type { DocGuide } from "@/lib/docs/data";
 import type { PaanoAnswer } from "@/lib/answers";
+import { getKnowledgeSource, isSourceFresh } from "@/lib/knowledge/sources";
 
 /**
  * Docs service — static, human-reviewed guides.
  * Ang LLM ay HINDI gumagawa ng fees/requirements dito; ito ang source.
  */
 
-const DISCLAIMER =
-  "Human-reviewed guide (huling na-verify 2026-08-13). Maaaring magbago ang mga bayarin at proseso — i-verify sa opisyal na site bago kumilos.";
+const MAX_DOC_AGE_DAYS = 30;
+
+const GUIDE_SOURCE: Record<string, string> = {
+  "psa-certificate": "psa-certificate-prices-2026-02",
+  "philsys-national-id": "philsys-2025-charter",
+  "passport-renewal": "dfa-passport-appointment",
+  passport: "dfa-passport-appointment",
+  "nbi-clearance": "nbi-clearance-portal",
+  "lto-student-permit": "lto-student-permit-charter",
+};
+
+function daysSince(dateText: string): number | null {
+  const verifiedAt = Date.parse(`${dateText}T00:00:00Z`);
+  if (!Number.isFinite(verifiedAt)) return null;
+  return Math.max(0, Math.floor((Date.now() - verifiedAt) / 86_400_000));
+}
 
 /** Hanapin ang best-matching doc guide. Mas mahaba/mas specific ang keyword
  * = mas mataas ang score. Bumalik ang null kung walang tugma. */
@@ -55,14 +70,30 @@ export function suggestedDocQuestions(guide: DocGuide): string[] {
 
 /** I-convert ang DocGuide papunta sa structured PaanoAnswer para sa card. */
 export function docGuideToAnswer(guide: DocGuide): PaanoAnswer {
+  const age = daysSince(guide.lastVerified);
+  const stale = age === null || age > MAX_DOC_AGE_DAYS;
+  const source = GUIDE_SOURCE[guide.id] ? getKnowledgeSource(GUIDE_SOURCE[guide.id]) : null;
+  const sourceNeedsReview = source !== null && !isSourceFresh(source);
+  const disclaimer = stale || sourceNeedsReview
+    ? `Human-reviewed guide (huling na-verify ${guide.lastVerified}) ay kailangang i-refresh. Maaaring luma na ang bayarin o proseso — i-verify sa opisyal na site bago kumilos.`
+    : `Human-reviewed guide (huling na-verify ${guide.lastVerified}). Maaaring magbago ang mga bayarin at proseso — i-verify sa opisyal na site bago kumilos.`;
   return {
     category: "docs",
     title: guide.title,
     summary: guide.summary,
     steps: guide.steps,
-    confidence: "high",
-    disclaimer: DISCLAIMER,
+    confidence: stale ? "medium" : "high",
+    disclaimer,
     official_link: guide.official_link,
+    provenance: {
+      label: source?.title ?? "Human-reviewed document guide",
+      asOf: guide.lastVerified,
+      status: stale || sourceNeedsReview ? "needs_review" : source?.type === "official" ? "official" : "curated",
+      note: stale || sourceNeedsReview
+        ? "Maaaring luma ang requirements o fees; i-verify muna sa opisyal na ahensya."
+        : "Human-reviewed source; maaaring magbago ang proseso at bayarin.",
+      url: source?.url ?? guide.official_link.url,
+    },
     category_specific: {
       category: "docs",
       agency: guide.agency,
