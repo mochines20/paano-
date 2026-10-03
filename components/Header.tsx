@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/useTheme";
 import { EmergencyModal } from "@/components/EmergencyModal";
+import { useScrollDirection } from "@/components/useScrollDirection";
 
 /** Sticky header — may active state ang "Itanong" at "Saklolo" hotlines. */
 export function Header() {
@@ -13,10 +14,17 @@ export function Header() {
   const onPaano = pathname.startsWith("/paano");
   const { theme, toggle } = useTheme();
   const [showEmergency, setShowEmergency] = useState(false);
+  const { direction, isVisible } = useScrollDirection();
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-line bg-deep/70 backdrop-blur-xl backdrop-saturate-150">
+      <header
+        data-scroll-direction={direction}
+        data-scroll-visible={isVisible}
+        className={`sticky top-0 z-30 border-b border-line bg-deep/70 backdrop-blur-xl backdrop-saturate-150 transition-transform duration-200 ease-out ${
+          isVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
           <div className="flex items-center gap-2.5">
             <Link

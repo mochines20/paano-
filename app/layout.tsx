@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Header } from "@/components/Header";
+import { DirectionalFooter } from "@/components/DirectionalFooter";
 import { PwaRegister } from "@/components/PwaRegister";
 import "./globals.css";
 
@@ -9,6 +10,25 @@ export const metadata: Metadata = {
   description:
     "Commute, lutong bahay, gawaing bahay, first aid, at government docs — sagot na Taglish, hyper-local, at praktikal. Parang tita o kuya na ginawa na ito.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      {
+        url: "/icons/paano-ai-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/icons/paano-ai-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: {
+      url: "/icons/paano-ai-512.png",
+      sizes: "512x512",
+      type: "image/png",
+    },
+  },
   appleWebApp: { capable: true, title: "PAANO", statusBarStyle: "black-translucent" },
 };
 
@@ -27,10 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PwaRegister />
         <Header />
         {children}
-        <footer className="mt-auto border-t border-line px-4 py-5 text-center text-xs leading-relaxed text-muted backdrop-blur-sm sm:py-6 sm:text-[13px]">
-          PAANO — impormasyon lamang. Hindi ito opisyal na source ng gobyerno,
-          doktor, o abogado.
-        </footer>
+        <DirectionalFooter />
         <Script
           id="theme-init"
           strategy="beforeInteractive"
