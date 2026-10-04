@@ -179,6 +179,15 @@ describe("fallback/wrap helpers", () => {
     expect(a.steps.length).toBe(2);
     expect(a.confidence).toBe("low");
   });
+
+  it("does not expose malformed JSON metadata as user-facing steps", () => {
+    const a = wrapRawText(
+      '{"category":"commute","title":"Route","steps":["Sakay"],"confidence":"high"',
+    );
+    expect(a.title).toBe("Hindi mabuo ang sagot");
+    expect(a.steps).toEqual([]);
+    expect(a.summary).not.toContain("confidence");
+  });
 });
 
 describe("answerToText", () => {

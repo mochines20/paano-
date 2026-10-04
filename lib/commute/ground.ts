@@ -44,6 +44,21 @@ export interface CommuteGrounding {
   provenance: AnswerProvenance;
 }
 
+function noMatchCommuteGrounding(origin: string, dest: string): CommuteGrounding {
+  return {
+    context: `[Commute data reference — walang matching route na nahanap para sa ${origin} → ${dest} sa kasalukuyang grounded dataset. Huwag mag-imbento ng station, operator, fare, o schedule; humingi ng mas eksaktong landmark o ituro sa user na i-verify sa official source.]`,
+    routes: [],
+    km: null,
+    fareBand: null,
+    fareBasis: null,
+    sources: [],
+    provenance: commuteProvenance(
+      [],
+      "Walang matching route sa kasalukuyang grounded dataset; hindi dapat hulaan ang exact transfer, fare, o schedule.",
+    ),
+  };
+}
+
 const INTENT_KEYWORDS = [
   "commute",
   "papunta",
@@ -205,6 +220,14 @@ export async function groundCommuteQuestion(
       }
     }
 
+    // May origin at destination pero walang na-match na trusted route. Huwag
+    // ibalik sa free-form model ang buong desisyon dahil puwede itong gumawa
+    // ng mukhang eksaktong transfer/fare mula sa training memory. Ibalik ang
+    // explicit no-match grounding para ma-activate ang safe fallback.
+    if (parts.length === 0 && origin && dest) {
+      return noMatchCommuteGrounding(origin, dest);
+    }
+
     if (parts.length === 0) return null;
 
     const orderedSources = orderCommuteSources(sources);
@@ -226,7 +249,10 @@ export async function groundCommuteQuestion(
       ),
     };
   } catch {
-    return null;
+    // Kahit unavailable ang optional GTFS file, panatilihing safe ang
+    // behavior para sa may kumpletong origin + destination.
+    const { origin, dest } = extractPlaces(question);
+    return origin && dest ? noMatchCommuteGrounding(origin, dest) : null;
   }
 }
 
@@ -247,6 +273,19 @@ export function applyCommuteGrounding(
   let next = { ...spec };
   if (g.routes.length > 0) {
     next = { ...next, route_names: g.routes };
+  }
+  // VTX/Alabang is a useful destination label, but it is not one guaranteed
+  // curbside stop. Keep the answer useful while making the uncertainty visible
+  // instead of allowing the model to imply an exact drop-off point.
+  if (
+    !next.destination_note &&
+    /\bvtx\b|starmall\s+alabang|alabang/i.test(next.destination)
+  ) {
+    next = {
+      ...next,
+      destination_note:
+        "Confirm exact VTX Alabang drop-off point with the driver/operator; nearby Alabang stops may use different names.",
+    };
   }
   // Fare band batay sa MGA MODE na sinabi ng modelo (hal. jeepney lang →
   // ₱13–₱15 base; bus lang → ₱13–₱15 base) — mas precise kaysa lahat-ng-mode.
@@ -283,13 +322,13 @@ export function applyCommuteGrounding(
         : null),
   };
 
-  // A distance hit without a candidate route is not enough evidence for a
+  // A fallback hit—or no grounded hit at all—is not enough evidence for a
   // safe step-by-step commute answer. Keep the model from turning an
   // unverified guess into a precise-sounding MRT/jeep transfer.
   const onlyDistanceFallback =
-    g.fareBasis !== "terminal" &&
     g.routes.length === 0 &&
-    g.sources.some((source) => source.id === "sakayph-gtfs");
+    (g.sources.some((source) => source.id === "sakayph-gtfs") ||
+      (g.fareBasis === null && g.sources.length === 0));
   if (onlyDistanceFallback) {
     return {
       ...groundedAnswer,
@@ -303,12 +342,10 @@ export function applyCommuteGrounding(
       ],
       disclaimer:
         "Walang candidate route na na-verify sa source data; ang sagot na ito ay hindi dapat gamiting exact navigation instruction.",
-      category_specific: {
-        ...next,
-        route_names: [],
-        fare_notes:
-          "Walang matching route na na-verify. Huwag gamitin ang fare estimate bilang exact fare; i-check sa LTFRB/operator.",
-      },
+      // Do not render a zero-valued fare/time card or a route tracker when
+      // there is no verified route to track. The provenance line remains
+      // visible through the normal answer-card fallback.
+      category_specific: null,
     };
   }
 

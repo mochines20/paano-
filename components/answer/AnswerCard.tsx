@@ -296,14 +296,22 @@ export function AnswerCard({
           <p className="mb-3 text-sm leading-relaxed text-body">{answer.summary}</p>
         )}
 
-        {answer.provenance && <ProvenanceLine provenance={answer.provenance} />}
+        {answer.provenance &&
+          (answer.category_specific?.category !== "commute" || answer.category !== "commute") && (
+            <ProvenanceLine provenance={answer.provenance} />
+          )}
 
         {/* ── Magkano Aabutin? Budget Breakdown Card ────────────── */}
         <BudgetBreakdown answer={answer} />
 
         {/* ── Category Specific Content ────────────────────────── */}
         {spec?.category === "commute" && (
-          <CommuteSection spec={spec} steps={answer.steps} tint={meta.tint} />
+          <CommuteSection
+            spec={spec}
+            steps={answer.steps}
+            tint={meta.tint}
+            provenance={answer.provenance}
+          />
         )}
         {spec?.category === "cooking" && (
           <CookingSection spec={spec} tint={meta.tint} border={meta.border} />
@@ -323,7 +331,8 @@ export function AnswerCard({
         )}
 
         {/* ── Fullscreen Step Tracker Launch Banner ───────────── */}
-        {answer.steps.length > 0 && (
+        {answer.steps.length > 0 &&
+          (answer.category !== "commute" || answer.category_specific?.category === "commute") && (
           <div className="mt-4 flex flex-col items-stretch gap-2 rounded-2xl border border-accent/30 bg-accent/10 p-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-bold text-accent">{tracker.prompt}</p>
@@ -342,7 +351,7 @@ export function AnswerCard({
         )}
 
         {/* Generic steps (para sa non-commute categories) */}
-        {answer.category !== "commute" && answer.steps.length > 0 && (
+        {(answer.category !== "commute" || !answer.category_specific) && answer.steps.length > 0 && (
           <StepsList steps={answer.steps} />
         )}
 

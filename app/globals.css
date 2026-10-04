@@ -73,7 +73,8 @@
   --surface-elevated: #f0f4f8;
   --border: rgba(10, 37, 64, 0.14);
   --border-strong: rgba(10, 37, 64, 0.28);
-  --muted: #52677c;
+  /* Dark enough for 11px source/disclaimer text on white panels. */
+  --muted: #40566b;
 
   --fg-body: #29445e;
   --panel: #f1f5f9;

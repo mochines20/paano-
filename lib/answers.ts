@@ -63,6 +63,8 @@ export interface CommuteSpecific {
   category: "commute";
   origin: string;
   destination: string;
+  /** Shown when a named terminal/landmark can refer to multiple nearby stops. */
+  destination_note?: string | null;
   modes: string[];
   route_names: string[];
   time_range: TimeRange;
@@ -323,6 +325,7 @@ export function normalizeAnswer(raw: unknown): PaanoAnswer | null {
         category: "commute",
         origin: asString(src.origin) ?? "?",
         destination: asString(src.destination) ?? "?",
+        destination_note: asString(src.destination_note),
         modes: asStringArray(src.modes),
         route_names: asStringArray(src.route_names),
         time_range: {
@@ -445,12 +448,32 @@ export function parseModelOutput(rawText: string, opts?: { last?: boolean }): Pa
 /** Last-resort answer kapag sira talaga ang model output — para may
  * maipakita pa rin ang UI imbes na blank card. */
 export function wrapRawText(raw: string): PaanoAnswer {
+  const trimmed = raw.trim();
+  const looksLikeStructuredPayload =
+    /^\s*(?:```(?:json)?\s*)?[{[]/i.test(trimmed) ||
+    /"(?:category|title|summary|steps|confidence|disclaimer|official_link|category_specific)"\s*:/i.test(trimmed);
+
+  // Never expose a failed JSON payload as if it were user-facing guidance.
+  // Besides looking broken, it can leak model metadata and partially parsed
+  // fields such as confidence/category into the step list.
+  if (looksLikeStructuredPayload) {
+    return {
+      category: "generic",
+      title: "Hindi mabuo ang sagot",
+      summary: "Hindi ma-parse ni PAANO ang structured na sagot. Subukan muli o gawing mas specific ang tanong.",
+      steps: [],
+      confidence: "low",
+      disclaimer: "Hindi na-validate ang sagot kaya huwag muna itong gawing instruction.",
+      official_link: null,
+      category_specific: null,
+    };
+  }
+
   return {
     category: "generic",
-    title: "Sagot (raw)",
-    summary:
-      "Hindi ma-parse ng PAANO ang structured na sagot. Narito ang direktang tugon ng modelo:",
-    steps: raw
+    title: "Sagot ni PAANO",
+    summary: "Narito ang direktang sagot ng modelo:",
+    steps: trimmed
       .split(/\n+/)
       .map((l) => l.replace(/^[-*•\d.)\s]+/, "").trim())
       .filter((l) => l.length > 0)

@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { CATEGORY_META, MODE_LABELS } from "@/components/answer/meta";
 import type { PaanoAnswer } from "@/lib/answers";
+import type { AnswerProvenance } from "@/lib/answers";
 import { IconCommute } from "@/components/icons";
 import { cleanStepText } from "@/components/answer/formatStepText";
 import { CommuteRouteMap } from "@/components/answer/sections/CommuteRouteMap";
@@ -14,11 +18,20 @@ export function CommuteSection({
   spec,
   steps,
   tint,
+  provenance,
 }: {
   spec: CommuteSpec;
   steps: string[];
   tint: string;
+  provenance?: AnswerProvenance | null;
 }) {
+  const [view, setView] = useState<"route" | "timeline">("route");
+  const destinationNote =
+    spec.destination_note ??
+    (/\bvtx\b|starmall\s+alabang|alabang/i.test(spec.destination)
+      ? "Confirm exact VTX Alabang drop-off point with the driver/operator; nearby Alabang stops may use different names."
+      : null);
+
   return (
     <div className="space-y-3">
       {/* Overview badges */}
@@ -59,16 +72,82 @@ export function CommuteSection({
           </div>
         </dl>
         {spec.fare_notes && <p className="mt-2 text-xs text-muted">{spec.fare_notes}</p>}
+
+        <div className="mt-3 rounded-xl border border-line bg-panel px-3 py-2.5 text-[11px] leading-relaxed text-muted">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="font-extrabold uppercase tracking-wider text-body">Source</span>
+            <span className="min-w-0 break-words">
+              {provenance?.label ?? "Commute source registry (unverified)"}
+            </span>
+          </div>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="font-extrabold uppercase tracking-wider text-body">As of</span>
+            <span>{provenance?.asOf ?? "Hindi pa verified"}</span>
+          </div>
+          {provenance?.note && <p className="mt-1">{provenance.note}</p>}
+          {provenance?.url && (
+            <a
+              href={provenance.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-block font-bold text-accent underline decoration-accent/40 underline-offset-2 hover:text-accent-bright"
+            >
+              Buksan ang source ↗
+            </a>
+          )}
+        </div>
+
+        {destinationNote && (
+          <div className="mt-3 flex gap-2 rounded-xl border border-amber-500/35 bg-amber-500/10 px-3 py-2.5 text-xs leading-relaxed text-amber-900 dark:text-amber-100">
+            <span aria-hidden className="mt-0.5 shrink-0 font-black">!</span>
+            <p>
+              <strong>Confirm destination:</strong> {destinationNote}
+            </p>
+          </div>
+        )}
       </div>
 
-      <CommuteRouteMap
-        origin={spec.origin}
-        destination={spec.destination}
-        steps={steps}
-      />
+      <div className="rounded-xl border border-line bg-deep/20 p-1.5" role="tablist" aria-label="Commute views">
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "route"}
+            onClick={() => setView("route")}
+            className={`rounded-lg px-2.5 py-2 text-xs font-extrabold transition-colors focus-ring ${
+              view === "route"
+                ? "bg-sky-500 text-white shadow-sm"
+                : "text-muted hover:bg-panel hover:text-body"
+            }`}
+          >
+            Route map / tracker
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === "timeline"}
+            onClick={() => setView("timeline")}
+            className={`rounded-lg px-2.5 py-2 text-xs font-extrabold transition-colors focus-ring ${
+              view === "timeline"
+                ? "bg-sky-500 text-white shadow-sm"
+                : "text-muted hover:bg-panel hover:text-body"
+            }`}
+          >
+            Transit timeline
+          </button>
+        </div>
+      </div>
+
+      {view === "route" && (
+        <CommuteRouteMap
+          origin={spec.origin}
+          destination={spec.destination}
+          steps={steps}
+        />
+      )}
 
       {/* Interactive visual transit timeline */}
-      {steps.length > 0 && (
+      {view === "timeline" && steps.length > 0 && (
         <div className="mt-4 rounded-xl border border-line bg-deep/30 p-3 backdrop-blur sm:p-4">
           <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-sky-600 dark:text-sky-400">
             <IconCommute className="h-3.5 w-3.5" />

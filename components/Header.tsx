@@ -40,6 +40,9 @@ export function Header() {
                 priority
                 className="h-10 w-10 object-contain sm:h-11 sm:w-11"
               />
+              <span className="hidden text-sm font-black tracking-[0.18em] text-foreground sm:inline">
+                PAANO
+              </span>
             </Link>
           </div>
 
